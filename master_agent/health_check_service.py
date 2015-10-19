@@ -1,4 +1,4 @@
-Class HealthCheckService(object):
+class HealthCheckService(object):
     def __init__(self):
         pass
 

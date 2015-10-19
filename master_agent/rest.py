@@ -1,4 +1,5 @@
 from flask import Flask
+from scheduler import Scheduler
 import json
 
 app = Flask("master-agent")

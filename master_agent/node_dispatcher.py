@@ -1,4 +1,4 @@
-Class NodeDispatcher(object):
+class NodeDispatcher(object):
     def __init__(self):
         pass
 

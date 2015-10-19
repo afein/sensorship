@@ -1,4 +1,4 @@
-Class ClusterState(object):
+class ClusterState(object):
     def __init__(self):
         pass
 
