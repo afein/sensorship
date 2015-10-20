@@ -1,0 +1,16 @@
+{
+	"name": "sensorship",
+	"version": "0.0.0",
+	"homepage": "https://github.com/afein/sensorship",
+	"authors": [
+		"Alex Mavrogiannis <almavrog@gmail.com>"
+	],
+	"license": "Apache 2.0",
+	"dependencies": {
+		"jquery": "^2.1.4",
+		"angular": "^1.2.28",
+		"angular-route": "^1.2.28",
+		"bootstrap": "^3.3.5",
+		"ng-table": "~0.8.1"
+	}
+}

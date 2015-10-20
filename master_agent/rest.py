@@ -1,8 +1,16 @@
-from flask import Flask
+from flask import Flask, render_template
 from scheduler import Scheduler
 import json
 
-app = Flask("master-agent")
+app = Flask("master-agent", static_folder="./ui/static", template_folder="./ui/templates")
+
+@app.route("/", methods=["GET"])
+def home():
+    return render_template("index.html")
+
+@app.errorhandler(500)
+def internal_error(error):
+    return error
 
 @app.route("/submit", methods=["POST"])
 def submit_job():
