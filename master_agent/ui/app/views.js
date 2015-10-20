@@ -1,5 +1,5 @@
 
-// Nav bar underlining of clicked links
+// Nav bar active setting
 var cleanAll = function() {
 	$("#homebutton").removeClass("active");
 	$("#nodesbutton").removeClass("active");
