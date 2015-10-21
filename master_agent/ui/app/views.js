@@ -24,6 +24,17 @@ $(document).ready(function() {
 });
 
 
+function postJson(url, data, callback) {
+	$.ajax({
+			url:url,
+			type:"POST",
+			data:data,
+			contentType:"application/json; charset=utf-8",
+			dataType:"json",
+			success: callback
+	});
+}
+
 angular.module('sensorship').controller('homeCtrl', function($scope) {
 
 	$('#tasksubmit').click( function() {
@@ -35,19 +46,34 @@ angular.module('sensorship').controller('homeCtrl', function($scope) {
 			return;
 		}
 
-		$.ajax({
-			url:"/submit",
-			type:"POST",
-			data:payload,
-			contentType:"application/json; charset=utf-8",
-			dataType:"json",
-			success: function(data){
-				console.log(data);
-				$('#tasktext').val('');
-			}
+		postJson("/submit", payload, function(data) {
+			console.log(data);
+			$('#tasktext').val('');
 		});
+
 	});
 
+	$scope.sync = function() {
+		$.getJSON("/tasks", function(data) {
+			$scope.items = data;
+		});
+	}
+
+	$scope.toggle = function(id, state) {
+		if (state == "on") {
+			postJson("/off", "{'id':" + id + "},", function(data) {
+				console.log(data)
+				$scope.sync();
+			});
+		} else {
+			postJson("/on", "{'id':" + id + "},", function(data) {
+				console.log(data)
+				$scope.sync();
+			});
+		}
+	};
+
+	$scope.sync();
 });
 
 angular.module('sensorship').controller('allNodesCtrl', function($scope) {

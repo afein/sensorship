@@ -16,11 +16,29 @@
 			</div>
 		</div>
 
-		<div class="col-lg-6 col-md-6 col-sm-6 col-lg-offset-1 col-md-offset-1 col-lg-offset-1">
+		<div class="col-lg-7 col-md-7 col-sm-7 col-lg-offset-1 col-md-offset-1 col-lg-offset-1">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
 					<h4> My Tasks </h4>
 				</div>
+				<table class="table table-hover " style="cursor:pointer" ng-table="tableParams">
+					<tbody>
+						<tr ng-click="toggle(task.id, task.state)" ng-repeat="task in items">
+							<td data-title="'Task ID'" sortable="'id'">
+								{{task.id}}
+							</td>
+							<td data-title="'Image'" sortable="'image'">
+								{{task.image}}
+							</td>
+							<td data-title="'Sensor Mappings'" sortable="'mappings'">
+								{{task.mappings}}
+							</td>
+							<td data-title="'State'" sortable="'state'">
+								{{task.state}}
+							</td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
 		</div>
 

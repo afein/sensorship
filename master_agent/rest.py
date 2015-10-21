@@ -18,7 +18,12 @@ def submit_task():
 
 @app.route("/tasks", methods=["GET"])
 def get_tasks():
-    return json.dumps([1,3,5,6])
+    task = {"id": 1, 
+            "image":"afein/container:latest",
+            "mappings": "board/sensor:89000",
+            "state": "off"
+    }
+    return json.dumps([task])
 
 @app.route("/on", methods=["POST"])
 def start_task():
