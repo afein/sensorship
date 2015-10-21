@@ -16,9 +16,8 @@ class HealthCheckService(object):
     def poll_health_status(self):
         nodes = self.cluster_state.get_configured_nodes()
         while True:
-            for node in nodes:
-                health_check_url = "http://" + nodes[node].get_ip() + "/healthz"
-                node_id = node.get_id()
+            for node_id in nodes:
+                health_check_url = "http://" + nodes[node_id].get_ip() + "/healthz"
                 resp = requests.get(health_check_url)
                 if resp.status_code != 200:
                     nodes[node_id].set_healthy = False
