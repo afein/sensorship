@@ -1,16 +1,9 @@
 class Sensor(object):
-    def __init__(self, id, type, units, value, timestamp):
-        self.id = id
+    def __init__(self, type, units, value, timestamp):
         self.type = type
         self.units = units
         self.value = value
         self.timestamp = timestamp
-	
-    def get_id(self):
-        return self.id
-
-    def set_id(self, id):
-        self.id = id
 
     def get_type(self):
         return self.type

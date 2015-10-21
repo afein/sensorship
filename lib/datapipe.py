@@ -1,16 +1,23 @@
 class Datapipe(object):
-    def __init__(self, id, sensor):
-        self.id = id
+    def __init__(self, sensor, local_node, remote_node):
         self.sensor = sensor
-
-    def get_id(self):
-        return self.id
-
-    def set_id(self, id):
-        self.id = self.id
+        self.local_node = local_node
+        self.remote_node = remote_node
 
     def get_sensor(self):
         return self.sensor
 
     def set_sensor(self, sensor):
         self.sensor = sensor
+
+    def get_local_node(self):
+        return self.local_node
+
+    def set_local_node(self, local_node):
+        self.local_node = local_node
+
+    def get_remote_node(self):
+        return self.remote_node
+
+    def set_remote_node(self, remote_node):
+        self.remote_node = remote_node

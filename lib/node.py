@@ -3,9 +3,8 @@ import fcntl
 import struct
 
 class Node(object):
-    def __init__(self, id, sensors, cpu, memory):
-        self.id = id
-        self.sensors = sensors
+    def __init__(self, sensors, cpu, memory)
+        self.sensors = []
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.ip = ipaddr = socket.inet_ntoa(fcntl.ioctl(
             s.fileno(),
@@ -16,16 +15,10 @@ class Node(object):
         self.memory = None
         self.healthy = True
 
-    def get_id(self):
-        return self.id
-
-    def get_ip(self):
-        return self.ip
-
     def get_sensors(self):
         return self.sensors
 
-    def set_sensors(self, sensor):
+    def add_sensor(self, sensor):
         self.sensors.append(sensor)
 
     def get_cpu(self):
