@@ -25,6 +25,29 @@ $(document).ready(function() {
 
 
 angular.module('sensorship').controller('homeCtrl', function($scope) {
+
+	$('#tasksubmit').click( function() {
+		try {
+			var payload = $('#tasktext').val();
+			var json = JSON.parse(payload);
+		} catch (err) {
+			alert("Invalid JSON: " + err);
+			return;
+		}
+
+		$.ajax({
+			url:"/submit",
+			type:"POST",
+			data:payload,
+			contentType:"application/json; charset=utf-8",
+			dataType:"json",
+			success: function(data){
+				console.log(data);
+				$('#tasktext').val('');
+			}
+		});
+	});
+
 });
 
 angular.module('sensorship').controller('allNodesCtrl', function($scope) {

@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from scheduler import Scheduler
 import json
 
@@ -13,17 +13,20 @@ def internal_error(error):
     return error
 
 @app.route("/submit", methods=["POST"])
-def submit_job():
-    resp = {"something": "implemented"}
-    return json.dumps(resp)
+def submit_task():
+    return json.dumps(request.get_json(force=True))
+
+@app.route("/tasks", methods=["GET"])
+def get_tasks():
+    return json.dumps([1,3,5,6])
 
 @app.route("/on", methods=["POST"])
-def start_job():
+def start_task():
     resp = {"something": "implemented"}
     return json.dumps(resp)
 
 @app.route("/off", methods=["POST"])
-def stop_job():
+def stop_task():
     resp = {"something": "implemented"}
     return json.dumps(resp)
 
