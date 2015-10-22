@@ -37,7 +37,7 @@ function postJson(url, data, callback) {
 
 angular.module('sensorship').controller('homeCtrl', function($scope) {
 
-	$('#tasksubmit').click( function() {
+	$scope.submitTask = function() {
 		try {
 			var payload = $('#tasktext').val();
 			var json = JSON.parse(payload);
@@ -49,24 +49,27 @@ angular.module('sensorship').controller('homeCtrl', function($scope) {
 		postJson("/submit", payload, function(data) {
 			console.log(data);
 			$('#tasktext').val('');
+			$scope.sync();
 		});
 
-	});
+	};
 
 	$scope.sync = function() {
 		$.getJSON("/tasks", function(data) {
 			$scope.items = data;
+			console.log($scope.items);
 		});
 	}
 
 	$scope.toggle = function(id, state) {
+		id = '{"id": "' + id + '"}';
 		if (state == "on") {
-			postJson("/off", "{'id':" + id + "},", function(data) {
+			postJson("/off", id, function(data) {
 				console.log(data)
 				$scope.sync();
 			});
 		} else {
-			postJson("/on", "{'id':" + id + "},", function(data) {
+			postJson("/on", id, function(data) {
 				console.log(data)
 				$scope.sync();
 			});
