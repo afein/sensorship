@@ -44,8 +44,8 @@ def run_container(image='node_image'):
     bindings = {}
     inspect_container = client.inspect_container('test')
     for k,v in inspect_container['NetworkSettings']['Ports'].iteritems():
-        cport = k.split('/')[0]
-        bindings[cport] = v[0]['HostPort']
+        cport = int(k.split('/')[0])
+        bindings[cport] = int(v[0]['HostPort'])
 
     print bindings
     return (container_id, bindings)
