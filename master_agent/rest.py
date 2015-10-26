@@ -17,13 +17,15 @@ def internal_error(error):
 
 @app.route("/submit", methods=["POST"])
 def submit_task():
-    cluster.add_task(request.get_json(force=True))
+    task = request.get_json(force=True)
+    if "state" not in task:
+        task["state"] = "off"
+    cluster.add_task(task)
     return "OK"
 
 @app.route("/tasks", methods=["GET"])
 def get_tasks():
     tasks_dict = cluster.get_tasks()
-
     tasks = []
     for key, val in tasks_dict.iteritems():
         new_task = val
@@ -34,16 +36,20 @@ def get_tasks():
 @app.route("/on", methods=["POST"])
 def start_task():
     id = int(request.get_json(force=True)["id"])
+    print id
     task = cluster.get_task_by_id(id)
     task["state"] = "on"
+    print cluster.get_task_by_id(id)
     return json.dumps(task)
 
 @app.route("/off", methods=["POST"])
 def stop_task():
     id = int(request.get_json(force=True)["id"])
+    print id
     task = cluster.get_task_by_id(id)
     task["state"] = "off"
-    return json.dumps(resp)
+    print cluster.get_task_by_id(id)
+    return json.dumps(task)
 
 @app.route("/register", methods=["POST"])
 def register_node():

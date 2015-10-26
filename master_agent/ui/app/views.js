@@ -24,18 +24,7 @@ $(document).ready(function() {
 });
 
 
-function postJson(url, data, callback) {
-	$.ajax({
-			url:url,
-			type:"POST",
-			data:data,
-			contentType:"application/json; charset=utf-8",
-			dataType:"json",
-			success: callback
-	});
-}
-
-angular.module('sensorship').controller('homeCtrl', function($scope) {
+angular.module('sensorship').controller('homeCtrl', function($scope, $http) {
 
 	$scope.submitTask = function() {
 		try {
@@ -46,17 +35,24 @@ angular.module('sensorship').controller('homeCtrl', function($scope) {
 			return;
 		}
 
-		postJson("/submit", payload, function(data) {
-			console.log(data);
+		var res = $http.post("/submit", payload)
+		res.success(function(data, status, headers, config) {
+			console.log("done");
 			$('#tasktext').val('');
-			$scope.sync();
+			$scope.sync(true);
 		});
 
 	};
 
-	$scope.sync = function() {
+	$scope.sync = function(apply) {
 		$.getJSON("/tasks", function(data) {
-			$scope.items = data;
+			if (apply) {
+				$scope.$apply(function() {
+					$scope.items = data;
+				});
+			} else {
+				$scope.items = data;
+			}
 			console.log($scope.items);
 		});
 	}
@@ -64,19 +60,19 @@ angular.module('sensorship').controller('homeCtrl', function($scope) {
 	$scope.toggle = function(id, state) {
 		id = '{"id": "' + id + '"}';
 		if (state == "on") {
-			postJson("/off", id, function(data) {
-				console.log(data)
-				$scope.sync();
+			var res = $http.post("/off", id);
+			res.success(function(data, status, headers, config) {
+				$scope.sync(true);
 			});
 		} else {
-			postJson("/on", id, function(data) {
-				console.log(data)
-				$scope.sync();
+			var res = $http.post("/on", id);
+			res.success(function(data, status, headers, config) {
+				$scope.sync(true);
 			});
 		}
 	};
 
-	$scope.sync();
+	$scope.sync(false);
 });
 
 angular.module('sensorship').controller('allNodesCtrl', function($scope) {
