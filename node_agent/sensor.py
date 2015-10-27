@@ -22,8 +22,34 @@ class Sensor(object):
         self.sensor_type = sensor_type
         self.sensor_interface = sensor_interface
 
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) \
+                   and self.sensor_type == other.sensor_type \
+                   and self.sensor_interface == other.sensor_interface
+
+    def __hash__(self):
+        return hash((self.sensor_type, self.sensor_interface))
+
     def __str__(self):
         return json.dumps({'sensor_type' : self.sensor_type.name, 'sensor_interface' : self.sensor_interface.name}) 
+
+
+class Peripheral(object):
+
+    def __init__(self, sensor, pin):
+        self.sensor = sensor
+        self.pin = pin
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) \
+                   and self.sensor == other.sensor \
+                   and self.pin == other.pin
+
+    def __hash__(self):
+        return hash((self.sensor, self.pin))
+
+    def __str__(self):
+        return json.dumps({'sensor' : str(self.sensor), 'pin' : self.pin})
 
 
 class SensorReading(object):
@@ -37,12 +63,3 @@ class SensorReading(object):
     def __str__(self):
         return json.dumps({'sensor' : str(self.sensor), 'value' : self.value, 'units' : self.units, 'timestamp' : self.timestamp})
 
-
-class Peripheral(object):
-
-    def __init__(self, sensor, pin):
-        self.sensor = sensor
-        self.pin = pin
-
-    def __str__(self):
-        return json.dumps({'sensor' : str(self.sensor), 'pin' : self.pin})

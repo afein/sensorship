@@ -14,14 +14,23 @@ class SensorDataFormatter(object):
         self.digital_ports = [2, 3, 4, 5, 6, 7, 8]
         self.analog_ports = [0, 1, 2]
 
-    def subscribe(self, sensor, datapipe, interval):
+    def subscribe(self, peripheral, datapipe):
         pass
 
-    def unsubscribe(self, sensor, datapipe):
+    def unsubscribe(self, unsubscribe, datapipe):
         pass
 
-    def poll_peripheral(self, peripheral):
-        return str(peripheral)
+    def get_poll_func(self, peripheral):
+        ret = None
+        if self._get_peripheral(peripheral):
+            def poll_func():
+                return str(peripheral)
+
+            ret = poll_func
+        else:
+            raise Exception('Error get_poll_func: invalid peripheral', str(peripheral))
+
+        return ret 
 
     def register_sensor(self, sensor, pin):
         p = Peripheral(sensor, pin)
