@@ -28,15 +28,18 @@ def get_tasks():
     tasks_dict = cluster.get_tasks()
     tasks = []
     for key, val in tasks_dict.iteritems():
-        new_task = val
         val["id"] = key
         tasks.append(val)
     return json.dumps(tasks)
 
 @app.route("/nodes", methods=["GET"])
 def get_nodes():
-    # TODO: implement
-    return json.dumps([])
+    nodes_dict = cluster.get_configured_nodes()
+    nodes = []
+    for key, val in nodes_dict.iteritems():
+        val["id"] = key
+        nodes.append(val)
+    return json.dumps(nodes)
 
 
 @app.route("/on", methods=["POST"])
@@ -59,8 +62,11 @@ def stop_task():
 
 @app.route("/register", methods=["POST"])
 def register_node():
-    resp = {"something": "implemented"}
-    return json.dumps(resp)
+    node = request.get_json(force=True)
+    if "state" not in node:
+        node["state"] = "down"
+    cluster.add_configured_nodes(node)
+    return "OK"
 
 if __name__ == "__main__":
         app.run()

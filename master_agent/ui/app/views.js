@@ -74,18 +74,19 @@ angular.module('sensorship').controller('homeCtrl', function($scope, $http) {
 
 angular.module('sensorship').controller('allNodesCtrl', function($scope, $http) {
 	$scope.registerNode = function() {
-		var nodename = $('#nodename').val();
-		var nodeip = $('#nodeip').val();
+		var name = $('#nodename').val();
+		var ip = $('#nodeip').val();
 		var mappings = $('#pinmappings').val();
 
-		payload = {"nodename" : nodename, 
-					"nodeip" : nodeip,
+		payload = {"name" : name, 
+					"ip" : ip,
 					"mappings" : mappings
 		};
 
 		var res = $http.post("/register", payload);
 		res.success(function(data, status, headers, config) {
 			$('#nodename').val('');
+			$('#nodeip').val('');
 			$('#pinmappings').val('');
 			$scope.sync(true);
 		});
@@ -102,6 +103,8 @@ angular.module('sensorship').controller('allNodesCtrl', function($scope, $http) 
 			}
 		});
 	}
+
+	$scope.sync(false);
 });
 
 
