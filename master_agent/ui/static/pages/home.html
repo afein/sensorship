@@ -9,10 +9,17 @@
 					<h4> Deploy a Task</h4>
 				</div>
 				<br>
-				<div class="form-group">
-					<textarea id="tasktext" class="form-control" rows="6" cols="35" name="task"></textarea>
+				<form>
+					<div class="form-group">
+						<label for="taskimage">Docker Image</label>
+						<input class="form-control" id="taskimage" placeholder="Docker Image">
+					</div>
+					<div class="form-group">
+						<label for="taskmappings">Sensor Mappings</label>
+						<textarea class="form-control" id="taskmappings" placeholder="Node/Sensor:Port Interval,"></textarea>
+					</div>
 					<button ng-click="submitTask()" class="btn btn-success">Submit Task</button> 
-				</div>
+				</form>
 			</div>
 		</div>
 

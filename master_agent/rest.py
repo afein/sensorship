@@ -33,6 +33,12 @@ def get_tasks():
         tasks.append(val)
     return json.dumps(tasks)
 
+@app.route("/nodes", methods=["GET"])
+def get_nodes():
+    # TODO: implement
+    return json.dumps([])
+
+
 @app.route("/on", methods=["POST"])
 def start_task():
     id = int(request.get_json(force=True)["id"])

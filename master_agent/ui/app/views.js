@@ -27,18 +27,15 @@ $(document).ready(function() {
 angular.module('sensorship').controller('homeCtrl', function($scope, $http) {
 
 	$scope.submitTask = function() {
-		try {
-			var payload = $('#tasktext').val();
-			var json = JSON.parse(payload);
-		} catch (err) {
-			alert("Invalid JSON: " + err);
-			return;
-		}
+		var image = $('#taskimage').val();
+		var mappings = $('#taskmappings').val();
+
+		payload = {"image" : image, "mappings":mappings};
 
 		var res = $http.post("/submit", payload)
 		res.success(function(data, status, headers, config) {
-			console.log("done");
-			$('#tasktext').val('');
+			$('#taskimage').val('');
+			$('#taskmappings').val('');
 			$scope.sync(true);
 		});
 
@@ -53,7 +50,6 @@ angular.module('sensorship').controller('homeCtrl', function($scope, $http) {
 			} else {
 				$scope.items = data;
 			}
-			console.log($scope.items);
 		});
 	}
 
@@ -75,8 +71,39 @@ angular.module('sensorship').controller('homeCtrl', function($scope, $http) {
 	$scope.sync(false);
 });
 
-angular.module('sensorship').controller('allNodesCtrl', function($scope) {
+
+angular.module('sensorship').controller('allNodesCtrl', function($scope, $http) {
+	$scope.registerNode = function() {
+		var nodename = $('#nodename').val();
+		var nodeip = $('#nodeip').val();
+		var mappings = $('#pinmappings').val();
+
+		payload = {"nodename" : nodename, 
+					"nodeip" : nodeip,
+					"mappings" : mappings
+		};
+
+		var res = $http.post("/register", payload);
+		res.success(function(data, status, headers, config) {
+			$('#nodename').val('');
+			$('#pinmappings').val('');
+			$scope.sync(true);
+		});
+	};
+
+	$scope.sync = function(apply) {
+		$.getJSON("/nodes", function(data) {
+			if (apply) {
+				$scope.$apply(function() {
+					$scope.items = data;
+				});
+			} else {
+				$scope.items = data;
+			}
+		});
+	}
 });
+
 
 angular.module('sensorship').controller('nodeCtrl', function($scope) {
 });

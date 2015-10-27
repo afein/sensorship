@@ -1,0 +1,61 @@
+<div class="container text-center">
+	<div class="row panel panel-primary">
+
+		<br>
+
+		<div class="col-lg-4 col-md-4 col-sm-4">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h4> Register a new Node</h4>
+				</div>
+				<br>
+				<form>
+					<div class="form-group">
+						<label for="nodename">Node Name</label>
+						<input class="form-control" id="nodename" placeholder="NodeX">
+					</div>
+					<div class="form-group">
+						<label for="nodeip">Node IP Address</label>
+						<input class="form-control" id="nodeip" placeholder="127.0.0.1">
+					</div>
+
+					<div class="form-group">
+						<label for="pinmappings">Sensor-Pin Mappings</label>
+						<textarea class="form-control" id="pinmappings" placeholder="Temperature:1, Humidity:8"></textarea>
+					</div>
+					<button ng-click="registerNode()" class="btn btn-success">Register Node</button> 
+				</form>
+			</div>
+		</div>
+
+		<div class="col-lg-7 col-md-7 col-sm-7 col-lg-offset-1 col-md-offset-1 col-lg-offset-1">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h4> My Nodes </h4>
+				</div>
+				<table class="table table-hover " style="cursor:pointer" ng-table="tableParams">
+					<tbody>
+						<tr ng-click="toggle(task.id, task.state)" ng-repeat="node in items">
+							<td data-title="'Node ID'" sortable="'id'">
+								{{node.id}}
+							</td>
+							<td data-title="'Name'" sortable="'name'">
+								{{node.name}}
+							</td>
+							<td data-title="'IP'" sortable="'ip'">
+								{{node.ip}}
+							</td>
+							<td data-title="'Sensor-Pin Mappings'" sortable="'mappings'">
+								{{node.mappings}}
+							</td>
+							<td data-title="'State'" sortable="'state'">
+								{{node.state}}
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+	</div>
+</div>
