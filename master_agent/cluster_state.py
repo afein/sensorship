@@ -7,6 +7,7 @@ class ClusterState(object):
         self.deployed_containerS_counter = 0
         self.established_datapipes = {}
         self.established_datapipes_counter = 0
+        self.node_datapipe_mapping = {}
         self.available_sensors = {}
         self.available_sensors_counter = 0
         self.tasks = {}
@@ -77,6 +78,20 @@ class ClusterState(object):
         with self.lock:
             self.established_datapipes[self.configured_datapipes_counter] = datapipe
             self.established_datapipes_counter += 1
+            local_node = datapipe.get_local_node()
+            remote_node = datapipe.get_remote_node()
+            sensor = datapipe.get_sensor()
+            if remote_node in self.node_datapipe_mapping:
+                if local_node not in self.node_datapipe_mapping[remote_node]:
+                    self.node_datapipe_mapping[remote_node][local_node] = [sensor]
+                else:
+                    self.node_datapipe_mapping[remote_node][local_node].append(sensor)
+            else:
+                self.node_datapipe_mapping[remote_node][local_node] = [sensor]
+
+    def get_node_datapipe_mapping():
+        with self.lock:
+            return self.node_datapipe_mapping
 
     def get_available_sensors(self):
         with self.lock:
