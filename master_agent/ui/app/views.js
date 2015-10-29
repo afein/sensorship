@@ -37,6 +37,13 @@ angular.module('sensorship').controller('homeCtrl', function($scope, $http) {
 			$('#taskimage').val('');
 			$('#taskmappings').val('');
 			$scope.sync(true);
+			$('#error').hide();
+		});
+		res.error(function(data, status, headers, config) {
+			if (status == "400") {
+				$('#error').html($(data)[5].outerHTML);
+				$('#error').show();
+			}
 		});
 
 	};
