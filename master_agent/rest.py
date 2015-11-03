@@ -1,13 +1,14 @@
 import os
+import socket
 from flask import Flask, render_template, request, abort
 from flask.json import jsonify
 from json import dumps
-from scheduler import Scheduler
 from requests import get
 
 from cluster_state import ClusterState
+from dev.grovepi import grovepi
 
-#TODO: fix relative paths related to the Driver
+
 app = Flask("master-agent", static_folder="./ui/static", template_folder="./ui/templates")
 
 cluster = ClusterState()
@@ -108,7 +109,19 @@ def submit_task():
 @app.route("/register", methods=["POST"])
 def register_node():
     # TODO(afein): node registration validation
-    node = request.get_json(force=True)
+    new_node = request.get_json(force=True)
+
+    if "name" not in new_node:
+        abort(400, "The \'name\' field cannot be empty")
+
+    if "ip" not in new_node:
+        abort(400, "The \'IP\' field cannot be empty")
+
+    try:
+        socket.inet_aton(new_node["ip"])
+    except socket.error:
+        abort(400, "Invalid IP address")
+
 
     if "state" not in node:
         node["state"] = "down"
