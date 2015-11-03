@@ -21,4 +21,10 @@ Platform Configuration
 - sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get install -y git python
 - http://www.dexterindustries.com/GrovePi/get-started-with-the-grovepi/setting-software/
 
-TODO(Wi-fi Setup)
+
+Wi-Fi Configuration
+===========
+- sudo apt-get install -y wicd-cli wicd-ncurses
+- wicd-ncurses
+- Find the preferred network to connect to, press the right arrow key, scroll down to "connect to this network automatically" and press space
+- Reboot the device
