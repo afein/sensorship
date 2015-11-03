@@ -1,8 +1,20 @@
 from threading import Lock
 class ClusterState(object):
+    ''' Cluster State Singleton '''
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(ClusterState, cls).__new__(
+                cls, *args, **kwargs)
+            cls._instance.new = True
+        return cls._instance
+
     def __init__(self):
-        self.configured_nodes = {}
-        self.configured_nodes_counter = 0
+        if not self.new:
+            return 
+
+        self.nodes = {}
         self.deployed_containers = {}
         self.deployed_containerS_counter = 0
         self.established_datapipes = {}
@@ -14,21 +26,22 @@ class ClusterState(object):
         self.tasks_counter = 0
         self.lock = Lock()
 
-    def get_configured_nodes(self):
-        with self.lock:
-            return self.configured_nodes
+        self.new = False
 
-    def get_configured_node_by_id(self, node_id):
+    def get_nodes(self):
+        with self.lock:
+            return self.nodes
+
+    def get_node_by_key(self, node_name):
         with self.lock:
             try:
-                return self.configured_nodes[node_id]
+                return self.nodes[node_name]
             except KeyError:
                 return None
 
-    def add_configured_nodes(self, node):
+    def add_node(self, name, node):
         with self.lock:
-            self.configured_nodes[self.configured_nodes_counter] = node
-            self.configured_nodes_counter += 1
+            self.nodes[name] = node
 
     def get_tasks(self):
         with self.lock:

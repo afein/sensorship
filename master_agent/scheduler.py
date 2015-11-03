@@ -7,24 +7,24 @@ class Scheduler(object):
         self.policy = policy
         self.lock = Lock()
 
-    def schedule(self, user_config):
+    def schedule(self, task):
         with self.lock:
-            state = user_config['on']
+            state = task['on']
 
             if state != 'on':
                 raise Exception('Error schedule: task submitted in not in "On" state')
 
-            node, datapipes = self.policy(user_config)
-            if node_dispatcher.deploy_container(user_config):
+            node, datapipes = self.policy(task)
+            if node_dispatcher.deploy_container(task):
                 for datapipe in datapipes:
                     flag = node_dispatcher.establish_datapipe(node, datapipe['remote_node'], datapipe['sensor'], datapipe['interval'])
                     if not flag:
                         raise Exception('Error when establishing datapipe')
                 cluster_state.add_deployed_containers(node)
 
-    def greedy(self, user_config):
-        image = user_config['image']
-        mappings = user_config['mapping']
+    def greedy(self, task):
+        image = task['image']
+        mappings = task['mapping']
 
         required_sensors = {}
         for mapping in mappings:

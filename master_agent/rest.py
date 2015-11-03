@@ -1,9 +1,11 @@
+import os
 from flask import Flask, render_template, request, abort
 from flask.json import jsonify
+from json import dumps
 from scheduler import Scheduler
-import json
+from requests import get
+
 from cluster_state import ClusterState
-import requests
 
 #TODO: fix relative paths related to the Driver
 app = Flask("master-agent", static_folder="./ui/static", template_folder="./ui/templates")
@@ -51,7 +53,7 @@ def submit_task():
         name, tag = nametag
     print "after"
 
-    resp = requests.get("https://registry.hub.docker.com/v1/repositories/" + repo + "/" + name + "/tags/" + tag)
+    resp = get("https://registry.hub.docker.com/v1/repositories/" + repo + "/" + name + "/tags/" + tag)
     if resp.status_code != 200:
         abort(400, "Image does not exist in Docker Hub: " + task["image"])
         return
@@ -66,7 +68,7 @@ def submit_task():
         devicesensor = token.strip().split("/")
         if len(devicesensor) != 2:
             abort(400, "Syntax Error while parsing mappings")
-        device, sensor = devicesensor
+        nodename, sensor = devicesensor
         sensorport = sensor.split(":")
         if len(sensorport) != 2:
             abort(400, "Syntax Error while parsing mappings")
@@ -77,7 +79,6 @@ def submit_task():
         port, interval = portinterval
 
         # Semantic Validation for Device, Sensor, Port and Interval
-        # TODO(afein): device/sensor semantic validation based on registration
         try: 
             intport = int(port)
             if intport < 0 or intport > 65535:
@@ -86,11 +87,23 @@ def submit_task():
             abort(400, "Cannot use the specified port \'" + port + "\'")
         try:
             intval = int(interval)
+            if intval < 20:
+                raise ValueError
         except ValueError:
-            abort(400, "Cannot use the specified interval \'" + interval + "\'")
+            abort(400, "Cannot use the specified interval \'" + interval + " ms\'")
+
+        # Node Lookup
+        node = cluster.get_node_by_key(nodename) 
+        if node is None:
+            abort(400, "Error: No such Node: " + nodename)
+
+        # Sensor mapping validation
+        mappings = [x for x in node["mappings"].split(",")]
+        sensor_types = [data[0] for data in mappings.split(":")]
+        if sensor not in sensor_types:
+            abort(400, "Error: The requested sensor type, \'", + sensor + "\', has not been configured for node \'" + nodename + "\'")
 
     cluster.add_task(task)
-    return "OK"
 
 @app.route("/register", methods=["POST"])
 def register_node():
@@ -108,16 +121,15 @@ def get_tasks():
     for key, val in tasks_dict.iteritems():
         val["id"] = key
         tasks.append(val)
-    return json.dumps(tasks)
+    return dumps(tasks)
 
 @app.route("/nodes", methods=["GET"])
 def get_nodes():
-    nodes_dict = cluster.get_configured_nodes()
+    nodes_dict = cluster.get_nodes()
     nodes = []
     for key, val in nodes_dict.iteritems():
-        val["id"] = key
         nodes.append(val)
-    return json.dumps(nodes)
+    return dumps(nodes)
 
 
 @app.route("/on", methods=["POST"])
@@ -127,7 +139,7 @@ def start_task():
     task = cluster.get_task_by_id(id)
     task["state"] = "on"
     print cluster.get_task_by_id(id)
-    return json.dumps(task)
+    return dumps(task)
 
 @app.route("/off", methods=["POST"])
 def stop_task():
@@ -136,7 +148,4 @@ def stop_task():
     task = cluster.get_task_by_id(id)
     task["state"] = "off"
     print cluster.get_task_by_id(id)
-    return json.dumps(task)
-
-if __name__ == "__main__":
-        app.run()
+    return dumps(task)
