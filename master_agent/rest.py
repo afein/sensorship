@@ -109,9 +109,10 @@ def submit_task():
 def register_node():
     # TODO(afein): node registration validation
     node = request.get_json(force=True)
+
     if "state" not in node:
         node["state"] = "down"
-    cluster.add_configured_nodes(node)
+    cluster.add_node(node)
     return "OK"
 
 @app.route("/tasks", methods=["GET"])
@@ -135,17 +136,13 @@ def get_nodes():
 @app.route("/on", methods=["POST"])
 def start_task():
     id = int(request.get_json(force=True)["id"])
-    print id
     task = cluster.get_task_by_id(id)
     task["state"] = "on"
-    print cluster.get_task_by_id(id)
     return dumps(task)
 
 @app.route("/off", methods=["POST"])
 def stop_task():
     id = int(request.get_json(force=True)["id"])
-    print id
     task = cluster.get_task_by_id(id)
     task["state"] = "off"
-    print cluster.get_task_by_id(id)
     return dumps(task)
