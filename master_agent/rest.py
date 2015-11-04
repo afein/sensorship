@@ -117,12 +117,27 @@ def register_node():
     if "ip" not in new_node:
         abort(400, "The \'IP\' field cannot be empty")
 
+    # Check if the IP is syntactically correct
     try:
         socket.inet_aton(new_node["ip"])
     except socket.error:
         abort(400, "Invalid IP address")
 
+    tokens = task["mappings"].split(",")
+    for token in tokens:
+        # Tokenization and parsing
+        sensorpin = token.strip().split(":")
+        if len(sensorpin) != 2:
+            abort(400, "Syntax Error while parsing mappings")
 
+        sensor, pin = sensorpin
+
+        #TODO: lookup sensor type(analog/digital) or fail
+        connection = "analog"
+
+        if pin not in grovepi[connection][pin]:
+            abort(400, "The requested pin is not available for this sensor type")
+        
     if "state" not in node:
         node["state"] = "down"
     cluster.add_node(node)
