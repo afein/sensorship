@@ -1,12 +1,17 @@
 import os
 import socket
-from flask import Flask, render_template, request, abort
+from flask import Flask, render_template, request
+from werkzeug.exceptions import BadRequest
 from flask.json import jsonify
 from json import dumps
 from requests import get
 
 from dev.grovepi import grovepi
 
+def abort(message):
+    resp = BadRequest()
+    resp.description=message
+    return resp
 
 class RestService(object):
     def __init__(self, cluster, scheduler):
@@ -37,11 +42,11 @@ class RestService(object):
                 task["state"] = "off"
 
             if "image" not in task or task["image"] == "":
-                abort(400, "The image field cannot be blank")
+                return abort("The image field cannot be blank")
 
             reponame = task["image"].split("/")
             if len(reponame) != 2:
-                abort(400, "Malformed Docker image name or tag")
+                return abort("Malformed Docker image name or tag")
 
             repo, name = reponame
             if ":" not in name:
@@ -49,32 +54,30 @@ class RestService(object):
             else:
                 nametag =  name.split(":")
                 if len(nametag) != 2:
-                    abort(400, "Malformed Docker tag")
+                    return abort("Malformed Docker tag")
                 name, tag = nametag
 
             resp = get("https://registry.hub.docker.com/v1/repositories/" + repo + "/" + name + "/tags/" + tag)
             if resp.status_code != 200:
-                abort(400, "Image does not exist in Docker Hub: " + task["image"])
-                return
+                return abort("Image \'" + task["image"] + "\' does not exist in Docker Hub")
 
             if "mappings" not in task or task["mappings"] == "":
-                abort(400, "The mappings field cannot be blank")
-                return "The image field cannot be blank"
+                return abort("The mappings field cannot be blank")
 
             tokens = task["mappings"].split(",")
             for token in tokens:
                 # Tokenization and parsing
                 devicesensor = token.strip().split("/")
                 if len(devicesensor) != 2:
-                    abort(400, "Syntax Error while parsing mappings")
+                    return abort("Syntax Error while parsing mappings")
                 nodename, sensor = devicesensor
                 sensorport = sensor.split(":")
                 if len(sensorport) != 2:
-                    abort(400, "Syntax Error while parsing mappings")
+                    return abort("Syntax Error while parsing mappings")
                 sensor, port = sensorport
                 portinterval = port.split(" ") 
                 if len(portinterval) != 2:
-                    abort(400, "Syntax Error while parsing mappings")
+                    return abort("Syntax Error while parsing mappings")
                 port, interval = portinterval
 
                 # Semantic Validation for Device, Sensor, Port and Interval
@@ -83,18 +86,18 @@ class RestService(object):
                     if intport < 0 or intport > 65535:
                         raise ValueError
                 except ValueError:
-                    abort(400, "Cannot use the specified port \'" + port + "\'")
+                    return abort("Cannot use the specified port \'" + port + "\'")
                 try:
                     intval = int(interval)
                     if intval < 20:
                         raise ValueError
                 except ValueError:
-                    abort(400, "Cannot use the specified interval \'" + interval + " ms\'")
+                    return abort("Cannot use the specified interval \'" + interval + " ms\'")
 
                 # Node Lookup
                 node = self.cluster.get_node_by_key(nodename) 
                 if node is None:
-                    abort(400, "Error: No such Node: " + nodename)
+                    return abort("Error: No such Node: " + nodename)
 
                 # Sensor mapping validation
                 sensor_types = []
@@ -102,7 +105,7 @@ class RestService(object):
                     sensor_types.append(sensor)
 
                 if sensor not in sensor_types:
-                    abort(400, "Error: The requested sensor type, \'", + sensor + "\', has not been configured for node \'" + nodename + "\'")
+                    return abort("Error: The requested sensor type, \'", + sensor + "\', has not been configured for node \'" + nodename + "\'")
 
             self.cluster.add_task(task)
             return "OK"
