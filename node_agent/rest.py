@@ -11,6 +11,10 @@ docker = DockerInterface()
 sdf = SensorDataFormatter()
 vnm = VirtualNetworkManager(sdf)
 
+import sys
+sys.path.append('../dev') # TODO: project structure 
+from sensor import *
+
 ''' Master, slave interactions
 
 def master_run_container(image, sensor_ports={'s1' : 1234, 's2' : 1235}):
@@ -35,7 +39,8 @@ def datapipe():
     req_json = request.get_json(force=True)
     host = req_json['host']
     port = req_json['port']
-    sensor = req_json['sensor']
+    sensor_json = req_json['sensor']
+    sensor = Sensor(sensor_json['device'], sensor_json['port'])
 
     if request.method == "POST":
         interval = req_json['interval']
@@ -80,11 +85,12 @@ def container():
 def sensor_data():
     req_json = request.get_json(force=True)
     ports = req_json['ports']
+    payload = req_json['data']
     for port in ports:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             s.connect(('192.168.99.100', port)) # TODO: make this work on Linux
-            s.send(json.dumps(req_json)) # TODO: data format
+            s.send(payload)
         except Exception as e:
             print e
             raise e

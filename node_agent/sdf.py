@@ -6,6 +6,10 @@ from threading import Lock
 from threading import Timer
 from fractions import gcd
 
+import sys
+sys.path.append('../dev') # TODO: project structure 
+from sensor import *
+#import grovepi
 
 class Endpoint(object):
 
@@ -89,14 +93,51 @@ class Sensorpipe(object):
 
         if current_len > 0:
             if len(receiving_ports) > 0:
-                payload = json.dumps({'ports' : receiving_ports, 'host' : self.host, 'sensor' : self.sensor, 'tick' : current_tick})
+                sensor_reading = self._poll()
+                #payload = json.dumps({'ports' : receiving_ports, 'host' : self.host, 'sensor' : self.sensor, 'tick' : current_tick})
+                payload = json.dumps({'ports' : receiving_ports, 'data' : '%r' % sensor_reading})
                 try:
-                    r = requests.post("http://%s:5000/sensor_data" % self.host, data=payload) # TODO: timeout?
+                    r = requests.post('http://%s:5000/sensor_data' % self.host, data=payload) # TODO: timeout?
                 except Exception as e:
                     print e
 
             Timer(current_tick, self._tick, []).start()
 
+    def _poll(self):
+        device = self.sensor.device
+        pin = self.sensor.pin
+        value = None
+
+        '''
+        grovepi.pinMode(pin,"INPUT")
+        if device == 'grove_button':
+            value = grovepi.digitalRead(pin)
+        elif sensor.device == 'grove_light':
+            raw = grovepi.analogRead(pin)
+            coefficient = ((1023.0-raw) * 10.0/raw) * 15.0
+            exponent = 4.0/3.0
+            value = 10000.0/pow(coefficient, exponent)
+        elif sensor.device == 'grove_rotary': # TODO: clean
+            adc_ref = 5
+            full_angle = 300
+            grove_vcc = 5
+
+            sensor_value = grovepi.analogRead(pin)
+            voltage = round((float)(sensor_value) * adc_ref / 1023, 2)
+            degrees = round((voltage * full_angle) / grove_vcc, 2)
+            value = degrees
+        elif sensor.device == 'grove_sound':
+            value = grovepi.analogRead(sound_sensor)
+        elif sensor.device == 'grove_temperature':
+            value = grovepi.temp(pin,'1.1')
+        elif sensor.device == 'grove_touch':
+            value = grovepi.digitalRead(pin)
+        '''
+        value = device # TODO
+
+        assert value != None
+
+        return SensorReading(self.sensor, value)
 
 class Datapipe(object):
 
@@ -104,7 +145,6 @@ class Datapipe(object):
         self.host = host
         self.lock = Lock()
         self.sensorpipes = {} # {Sensor : Sensorpipe}
-        # TODO: sensor must be hashable
 
     def add_sensorpipe_endpoint(self, sensor, endpoint):
         sensorpipe = None
