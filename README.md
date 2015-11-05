@@ -24,7 +24,7 @@ Platform Configuration
 
 Wi-Fi Configuration
 ===========
-- sudo apt-get install -y wicd-cli wicd-ncurses
-- wicd-ncurses
+- sudo apt-get install -y wicd-cli wicd-curses
+- wicd-curses
 - Find the preferred network to connect to, press the right arrow key, scroll down to "connect to this network automatically" and press space
 - Reboot the device
