@@ -45,9 +45,13 @@ class Scheduler(object):
             for other_node in required_sensors:
                 if other_node != current_node:
                     for sensor in required_sensors[other_node]:
-                        if current_node in node_datapipe_mapping and other_node in node_datapipe_mapping[current_node] and sensor['sensor'] not in node_datapipe_mapping[current_node][other_node]:
-                            count += 1
-                            actual_datapipes[current_node] = {'remote_node': other_node, 'sensor': sensor['sensor'], 'interval': sensor['interval']}
+                        if current_node in node_datapipe_mapping and other_node in node_datapipe_mapping[current_node]:
+                            if sensor['sensor'] not in node_datapipe_mapping[current_node][other_node]:
+                                count += 1
+                                if current_node not in actual_datapipes:
+                                    actual_datapipes[current_node] = [{'remote_node': other_node, 'sensor': sensor['sensor'], 'interval': sensor['interval']}]
+                                else:
+                                    actual_datapipes[current_node].append({'remote_node': other_node, 'sensor': sensor['sensor'], 'interval': sensor['interval']})
                         else:
                             count += 1
                             if current_node not in actual_datapipes:
