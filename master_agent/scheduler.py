@@ -1,11 +1,15 @@
 from threading import Lock
 
 class Scheduler(object):
-    def __init__(self, cluster_state, node_dispatcher, policy):
+    def __init__(self, cluster_state, node_dispatcher):
         self.cluster_state = cluster_state
         self.node_dispatcher = node_dispatcher
-        self.policy = policy
+        self.policy = None
         self.lock = Lock()
+    
+    def set_policy(self, policy):
+        self.policy = policy
+
 
     def schedule(self, task):
         with self.lock:
@@ -33,8 +37,7 @@ class Scheduler(object):
                 required_sensors[node] = [{'sensor': mapping['sensor'], 'interval': mapping['interval']}]
             else:
                 required_sensors[node].append({'sensor': mapping['sensor'], 'interval': mapping['interval']})
-        
-        node_datapipe_mapping = cluster_state.get_node_datapipe_mapping()
+        node_datapipe_mapping = self.cluster_state.get_node_datapipe_mapping()
         required_datapipes = {}
         actual_datapipes = {}
         for current_node in required_sensors:
@@ -42,10 +45,19 @@ class Scheduler(object):
             for other_node in required_sensors:
                 if other_node != current_node:
                     for sensor in required_sensors[other_node]:
-                        if sensor['sensor'] not in node_datapipe_mapping[current_node][other_node]:
+                        if current_node in node_datapipe_mapping and other_node in node_datapipe_mapping[current_node] and sensor['sensor'] not in node_datapipe_mapping[current_node][other_node]:
                             count += 1
                             actual_datapipes[current_node] = {'remote_node': other_node, 'sensor': sensor['sensor'], 'interval': sensor['interval']}
+                        else:
+                            count += 1
+                            if current_node not in actual_datapipes:
+                                actual_datapipes[current_node] = [{"remote_node": other_node, 'sensor': sensor['sensor'], 'interval': sensor['interval']}]
+                            else:
+                                actual_datapipes[current_node].append({"remote_node": other_node, 'sensor': sensor['sensor'], 'interval': sensor['interval']})
             required_datapipes[current_node] = count
         scheduled_node = min(required_datapipes, key=required_datapipes.get)
-        scheduled_datapipes = actual_datapipes[scheduled_node]
+        if actual_datapipes == {}:
+            scheduled_datapipes = {}
+        else:
+            scheduled_datapipes = actual_datapipes[scheduled_node]
         return (scheduled_node, scheduled_datapipes)

@@ -102,7 +102,7 @@ class ClusterState(object):
             else:
                 self.node_datapipe_mapping[remote_node][local_node] = [sensor]
 
-    def get_node_datapipe_mapping():
+    def get_node_datapipe_mapping(self):
         with self.lock:
             return self.node_datapipe_mapping
 
