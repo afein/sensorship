@@ -86,6 +86,8 @@ def sensor_data():
     req_json = request.get_json(force=True)
     ports = req_json['ports']
     payload = req_json['data']
+    print req_json
+    '''
     for port in ports:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
@@ -96,7 +98,7 @@ def sensor_data():
             raise e
         finally:
             s.close()
-        
+    ''' 
     return "OK"
 
 if __name__ == "__main__":

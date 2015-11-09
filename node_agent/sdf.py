@@ -9,7 +9,7 @@ from fractions import gcd
 import sys
 sys.path.append('../dev') # TODO: project structure 
 from sensor import *
-#import grovepi
+import grovepi
 
 class Endpoint(object):
 
@@ -93,10 +93,10 @@ class Sensorpipe(object):
 
         if current_len > 0:
             if len(receiving_ports) > 0:
-                sensor_reading = self._poll()
                 #payload = json.dumps({'ports' : receiving_ports, 'host' : self.host, 'sensor' : self.sensor, 'tick' : current_tick})
-                payload = json.dumps({'ports' : receiving_ports, 'data' : '%r' % sensor_reading})
                 try:
+                    sensor_reading = self._poll()
+                    payload = json.dumps({'ports' : receiving_ports, 'data' : '%r' % sensor_reading})
                     r = requests.post('http://%s:5000/sensor_data' % self.host, data=payload) # TODO: timeout?
                 except Exception as e:
                     print e
@@ -108,16 +108,18 @@ class Sensorpipe(object):
         pin = self.sensor.pin
         value = None
 
-        '''
         grovepi.pinMode(pin,"INPUT")
         if device == 'grove_button':
             value = grovepi.digitalRead(pin)
-        elif sensor.device == 'grove_light':
+        elif device == 'grove_light':
             raw = grovepi.analogRead(pin)
-            coefficient = ((1023.0-raw) * 10.0/raw) * 15.0
-            exponent = 4.0/3.0
-            value = 10000.0/pow(coefficient, exponent)
-        elif sensor.device == 'grove_rotary': # TODO: clean
+            if raw == 0:
+                value = 0
+            else:
+                coefficient = ((1023.0-raw) * 10.0/raw) * 15.0
+                exponent = 4.0/3.0
+                value = 10000.0/pow(coefficient, exponent)
+        elif device == 'grove_rotary_angle': # TODO: clean
             adc_ref = 5
             full_angle = 300
             grove_vcc = 5
@@ -126,16 +128,13 @@ class Sensorpipe(object):
             voltage = round((float)(sensor_value) * adc_ref / 1023, 2)
             degrees = round((voltage * full_angle) / grove_vcc, 2)
             value = degrees
-        elif sensor.device == 'grove_sound':
-            value = grovepi.analogRead(sound_sensor)
-        elif sensor.device == 'grove_temperature':
+        elif device == 'grove_sound':
+            value = grovepi.analogRead(pin)
+        elif device == 'grove_temperature':
             value = grovepi.temp(pin,'1.1')
-        elif sensor.device == 'grove_touch':
+        elif device == 'grove_touch':
             value = grovepi.digitalRead(pin)
-        '''
-        value = device # TODO
-
-        assert value != None
+        #value = device # TODO
 
         return SensorReading(self.sensor, value)
 
