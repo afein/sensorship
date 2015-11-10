@@ -6,14 +6,10 @@ from scheduler import Scheduler
 from cluster_state import ClusterState
 from health_check_service import HealthCheckService
 from node_dispatcher import NodeDispatcher
-
-# Add the parent directory to the PYTHONPATH
 from rest import RestService
 
-# Import and configure the REST service
-
 cluster = ClusterState()
-scheduler = Scheduler(cluster, NodeDispatcher(), "greedy")
+scheduler = Scheduler(cluster, NodeDispatcher())
+scheduler.set_policy("greedy")
 rest = RestService(cluster, scheduler)
 rest.run()
-

@@ -1,7 +1,6 @@
 <div class="container text-center">
 	<div class="row panel panel-primary">
 		<br>
-
 		<div class="col-lg-4 col-md-4 col-sm-4">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
@@ -50,6 +49,25 @@
 						</tr>
 					</tbody>
 				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="container text-center">
+	<div class="row panel panel-primary">
+		<br>
+		<div class="col-lg-8 col-md-8 col-sm-8 col-lg-offset-2 col-mg-offset-2 col-sm-offset-2">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h4>Supported Sensors</h4>
+				</div>
+				<br>
+				<ul class="list-group">
+					<li class="list-group-item" ng-repeat="sensor in sensors">
+						{{sensor}}
+					</li>
+				</ul>
 			</div>
 		</div>
 	</div>

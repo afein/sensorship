@@ -109,6 +109,15 @@ angular.module('sensorship').controller('allNodesCtrl', function($scope, $http) 
 				$scope.items = data;
 			}
 		});
+		$.getJSON("/sensors", function(data) {
+			if (apply) {
+				$scope.$apply(function() {
+					$scope.sensors = data;
+				});
+			} else {
+				$scope.sensors = data;
+			}
+		});
 	}
 
 	$scope.sync(false);

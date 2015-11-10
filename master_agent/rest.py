@@ -7,6 +7,7 @@ from json import dumps
 from requests import get
 
 from dev.grovepi import grovepi
+from sensors.grove import grove
 
 def abort(message):
     resp = BadRequest()
@@ -138,9 +139,9 @@ class RestService(object):
                     abort(400, "Syntax Error while parsing mappings")
 
                 sensor, pin = sensorpin
-
-                #TODO: lookup sensor type(analog/digital) or fail
-                connection = "digital"
+                if sensor not in grove:
+                    abort(400, "The requested sensor type is not supported")
+                connection = grove[sensor] # analog or digital connection type
 
                 if connection not in grovepi :
                     abort(400, "The requested pin is not available for this sensor type")
@@ -163,6 +164,11 @@ class RestService(object):
                 val["id"] = key
                 tasks.append(val)
             return dumps(tasks)
+
+        # /sensors returns a list with the supported sensors
+        @self.app.route("/sensors", methods=["GET"])
+        def get_sensors():
+            return dumps(grove.keys())
 
         @self.app.route("/nodes", methods=["GET"])
         def get_nodes():
