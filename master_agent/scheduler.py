@@ -8,8 +8,8 @@ class Scheduler(object):
         self.lock = Lock()
     
     def set_policy(self, policy):
-        self.policy = policy
-
+        with self.lock:
+            self.policy = policy
 
     def schedule(self, task):
         with self.lock:
