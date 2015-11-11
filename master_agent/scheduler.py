@@ -19,16 +19,24 @@ class Scheduler(object):
                 raise Exception('Error schedule: task submitted in not in "On" state')
 
             node, datapipes = self.policy(task)
-            if node_dispatcher.deploy_container(task):
+            container_id, port_bindings = node_dispatcher.deploy_container(task)
+            mappings = task['mappings']
+            if port_bindings != None:
                 for datapipe in datapipes:
-                    flag = node_dispatcher.establish_datapipe(node, datapipe['remote_node'], datapipe['sensor'], datapipe['interval'])
-                    if not flag:
+                    port = None
+                    for mapping in task['mappings']:
+                        for p in port_bindings:
+                            if p == mapping['port']:
+                                port = port_bindings[p]
+                                break
+                    status_code = node_dispatcher.establish_datapipe(node, datapipe['remote_node'], port, datapipe['sensor'], datapipe['interval'])
+                    if status_code != 200:
                         raise Exception('Error when establishing datapipe')
                 cluster_state.add_deployed_containers(node)
 
     def greedy(self, task):
         image = task['image']
-        mappings = task['mapping']
+        mappings = task['mappings']
 
         required_sensors = {}
         for mapping in mappings:
