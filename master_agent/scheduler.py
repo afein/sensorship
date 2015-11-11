@@ -24,7 +24,7 @@ class Scheduler(object):
             if port_bindings != None:
                 for datapipe in datapipes:
                     port = None
-                    for mapping in task['mappings']:
+                    for mapping in mappings:
                         for p in port_bindings:
                             if p == mapping['port']:
                                 port = port_bindings[p]
