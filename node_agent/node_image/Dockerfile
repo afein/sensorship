@@ -1,6 +1,5 @@
-From    centos:centos6
+From    hypriot/rpi-python 
 COPY    . /src
-RUN     cd /src
 
 EXPOSE  1234 
 EXPOSE  1235

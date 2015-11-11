@@ -11,8 +11,6 @@ docker = DockerInterface()
 sdf = SensorDataFormatter()
 vnm = VirtualNetworkManager(sdf)
 
-import sys
-sys.path.append('../dev') # TODO: project structure 
 from sensor import *
 
 ''' Master, slave interactions
@@ -66,7 +64,7 @@ def container():
         try:
             (container_id, port_bindings) = docker.run_container(image, ports)
         except Exception as e:
-            print e
+            print '/container POST', e
             raise e
         resp_json = json.dumps({'container_id' : container_id, 'port_bindings' : port_bindings})
         resp = Response(resp_json, status=200, mimetype='application/json') 
@@ -75,7 +73,7 @@ def container():
         try:
             docker.delete_container(image)
         except Exception as e:
-            print e
+            print '/container DELETE', e
             raise e 
         resp = "OK"
 
@@ -86,20 +84,19 @@ def sensor_data():
     req_json = request.get_json(force=True)
     ports = req_json['ports']
     payload = req_json['data']
-    print req_json
-    '''
+    
     for port in ports:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            s.connect(('192.168.99.100', port)) # TODO: make this work on Linux
+            s.connect(('', port))
             s.send(payload)
         except Exception as e:
-            print e
+            print '/sensor_data', e
             raise e
         finally:
             s.close()
-    ''' 
+     
     return "OK"
 
 if __name__ == "__main__":
-        app.run()
+        app.run(host='0.0.0.0', port=5000)

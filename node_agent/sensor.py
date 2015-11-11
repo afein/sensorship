@@ -1,18 +1,23 @@
 import json
-import rpi
+
+import os.path, sys # TODO
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
+
+from dev.grovepi import grovepi
+from sensors.grove import grove, units
 from time import gmtime, strftime
 
 class Sensor(object):
 
     def __init__(self, device, port):
-        assert device in rpi.devices.keys()
-        sensor_type = rpi.devices[device]['sensor_type']
-        assert sensor_type in rpi.ports.keys()
-        assert port in rpi.ports[sensor_type].keys()
+        assert device in grove.keys()
+        sensor_type = grove[device]
+        assert sensor_type in grovepi.keys()
+        assert port in grovepi[sensor_type].keys()
         self.device = device
         self.port = port
-        self.pin = rpi.ports[sensor_type][port]
-        self.units = rpi.devices[device]['units']
+        self.pin = grovepi[sensor_type][port]
+        self.units = units[device]
 
     def __eq__(self, other):
         return isinstance(other, self.__class__)             \

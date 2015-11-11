@@ -1,8 +1,6 @@
 import requests
 import json
 
-import sys
-sys.path.append('../dev') # TODO: project structure 
 from sensor import *
 
 def create_datapipe(node_host, dst_host, port, sensor, interval):
