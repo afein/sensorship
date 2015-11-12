@@ -25,10 +25,11 @@ class Scheduler(object):
                 for datapipe in datapipes:
                     port = None
                     for mapping in mappings:
-                        for p in port_bindings:
-                            if p == mapping['port']:
-                                port = port_bindings[p]
-                                break
+                        if datapipe['sensor'] == mapping['sensor']:
+                            for p in port_bindings:
+                                if p == mapping['port']:
+                                    port = port_bindings[p]
+                        break
                     status_code = node_dispatcher.establish_datapipe(node, datapipe['remote_node'], port, datapipe['sensor'], datapipe['interval'])
                     if status_code != 200:
                         raise Exception('Error when establishing datapipe')
