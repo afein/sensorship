@@ -1,4 +1,5 @@
-import time
+import os.path, sys
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 
 from test_harness import *
 from sensor import *
@@ -9,16 +10,12 @@ print container_id, port_bindings
 a0 = Sensor('GroveTemperature', 'A0')
 d3 = Sensor('GroveButton', 'D3')
 
-# app setup in container
-time.sleep(3)
-
 port1 = port_bindings.items()[0][1]
 create_datapipe('localhost', 'localhost', port1, a0, 5)
 
 port2 = port_bindings.items()[1][1]
 create_datapipe('localhost', 'localhost', port2, d3, 6)
 
-print container_id
 
 '''
 d2 = Sensor('GroveTouch', 'D2')

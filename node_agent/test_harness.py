@@ -24,8 +24,8 @@ def create_container(node_host, image, ports):
 
     return (container_id, port_bindings)
 
-def delete_container(node_host, image):
-    req_payload = json.dumps({'image' : image})
+def delete_container(node_host, container_id):
+    req_payload = json.dumps({'container_id' : container_id})
     r = requests.delete('http://%s:5000/container' % node_host, data=req_payload)
     assert r.status_code == 200
 
