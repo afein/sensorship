@@ -1,6 +1,6 @@
 FROM hypriot/rpi-python
 
-ADD server.py
+ADD server.py /
 RUN pip install flask
 
-ENTRYPOINT ["python", "server.py"]
+ENTRYPOINT ["python", "/server.py"]
