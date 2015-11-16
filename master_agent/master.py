@@ -9,7 +9,9 @@ from node_dispatcher import NodeDispatcher
 from rest import RestService
 
 cluster = ClusterState()
-scheduler = Scheduler(cluster, NodeDispatcher())
+dispatcher = NodeDispatcher(5000)
+
+scheduler = Scheduler(cluster, dispatcher)
 scheduler.set_policy("greedy")
 rest = RestService(cluster, scheduler)
 rest.run()
