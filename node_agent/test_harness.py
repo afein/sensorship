@@ -29,3 +29,8 @@ def delete_container(node_host, container_id):
     r = requests.delete('http://%s:5000/container' % node_host, data=req_payload)
     assert r.status_code == 200
 
+def sdf_state(node_host):
+    r = requests.get('http://%s:5000/sdf_state' % node_host)
+    assert r.status_code == 200
+
+    return r.text

@@ -135,6 +135,15 @@ class Sensorpipe(object):
 
         return SensorReading(self.sensor, value)
 
+    def __repr__(self):
+        ret = ''
+        ret += '%r  tick:%.2f\n' % (self.sensor, self.tick)
+        for endpoint in self.endpoints:
+            ret += '  %d  %.2f\n' % (endpoint.port, endpoint.interval)
+
+        return ret
+
+
 class Datapipe(object):
 
     def __init__(self, host):
@@ -161,6 +170,12 @@ class Datapipe(object):
         
         sensorpipe.delete_endpoint(endpoint)
 
+    def __repr__(self):
+        ret = ''
+        for sensor, sensorpipe in self.sensorpipes.iteritems():
+            ret += sensorpipe.__repr__() + '\n'
+
+        return ret
 
 class SensorDataFormatter(object):
 
@@ -189,6 +204,15 @@ class SensorDataFormatter(object):
         endpoint = Endpoint(host, port, 0)
         datapipe.delete_sensorpipe_endpoint(sensor, endpoint)
 
-    def register_sensor(sensor, pin):
+    def register_sensor(self, sensor, pin):
         pass
+
+    def __repr__(self):
+        ret = ''
+        with self.lock:
+            for host, datapipe in self.datapipes.iteritems():
+                ret += host + '\n'
+                ret += datapipe.__repr__() + '\n'
+                
+        return ret
 

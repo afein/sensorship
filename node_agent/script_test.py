@@ -16,6 +16,11 @@ create_datapipe('localhost', 'localhost', port1, a0, 5)
 port2 = port_bindings.items()[1][1]
 create_datapipe('localhost', 'localhost', port2, d3, 6)
 
+import time
+time.sleep(3)
+state = sdf_state('localhost')
+print state
+
 
 '''
 d2 = Sensor('GroveTouch', 'D2')

@@ -124,6 +124,21 @@ class RestService(object):
                     s.close()
              
             return "OK"
+        
+        '''
+        GET - state of SDF for debugging
+        '''
+        @self.app.route("/sdf_state", methods=["GET"])
+        def sdf_state():
+            print 'here'
+            try:
+                sdf_state = self.vnm.sdf.__repr__()
+            except Exception as e:
+                print e
+            print sdf_state
+            resp = Response(sdf_state, status=200, mimetype='text/plain')
 
+            return resp
+            
     def run(self):
         self.app.run(host='0.0.0.0', port=5000)
