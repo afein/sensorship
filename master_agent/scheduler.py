@@ -55,7 +55,7 @@ class Scheduler(object):
                                         sensor["port"] = pin
                                         break
                                 break
-                status_code = node_dispatcher.establish_datapipe(node, datapipe["remote_node"], port, sensor, datapipe["interval"])
+                status_code = self.node_dispatcher.establish_datapipe(node, datapipe["remote_node"], port, sensor, datapipe["interval"])
                 if status_code != 200:
                     raise Exception('Error when establishing datapipe')
                 self.cluster_state.add_established_datapipes(Datapipe(datapipe["sensor"], node, datapipe["remote_node"]))
