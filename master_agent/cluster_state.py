@@ -16,7 +16,6 @@ class ClusterState(object):
 
         self.nodes = {}
         self.deployed_containers = {}
-        self.deployed_containerS_counter = 0
         self.established_datapipes = {}
         self.established_datapipes_counter = 0
         self.node_datapipe_mapping = {}
@@ -67,14 +66,12 @@ class ClusterState(object):
             except KeyError:
                 return None
 
-    def add_deployed_containers(self, node_id):
+    def add_deployed_containers(self, node_id, container_id):
         with self.lock:
             if node_id not in self.deployed_containers: 
-                self.deployed_containers[node_id] = [self.deployed_containers_counter]
+                self.deployed_containers[node_id] = [container_id]
             else:
-                node_container_mapping = self.deployed_containers[node_id]
-                node_container_mapping.append(self.deployed_containers_counter)
-            self.deployed_containers_counter += 1
+                self.deployed_containers[node_id].append(container_id)
 
     def get_established_datapipes(self):
         with self.lock:

@@ -2,7 +2,7 @@ import unittest
 from master_agent.scheduler import Scheduler
 from master_agent.cluster_state import ClusterState
 from master_agent.node_dispatcher import NodeDispatcher
-from lib.datapipe import Datapipe
+from master_agent.lib.datapipe import Datapipe
 
 class SchedulerTestcase(unittest.TestCase):
     def setUp(self):

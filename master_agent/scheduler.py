@@ -1,4 +1,5 @@
 from threading import Lock
+from lib.datapipe import Datapipe
 
 class Scheduler(object):
     def __init__(self, cluster_state, node_dispatcher):
@@ -53,9 +54,11 @@ class Scheduler(object):
                 status_code = node_dispatcher.establish_datapipe(node, datapipe["remote_node"], port, sensor, datapipe["interval"])
                 if status_code != 200:
                     raise Exception('Error when establishing datapipe')
+                self.cluster_state.add_established_datapipes(Datapipe(datapipe["sensor"], node, datapipe["remote_node"]))
 
-            cluster_state.add_deployed_containers(node)
-            # TODO: add node_datapipe_mappings
+            self.cluster_state.add_deployed_containers(node, container_id)
+            print "deployed_containers: "
+            print self.cluster_state.get_deployed_containers()
 
     def greedy(self, task):
         required_sensors = {}
