@@ -75,13 +75,10 @@ class Scheduler(object):
         node_datapipe_mapping = self.cluster_state.get_node_datapipe_mapping()
         required_datapipes = {}
         actual_datapipes  = {}
-        print "first for loop"
 
         for current_node in required_sensors:
             count = 0
-            print "second for loop"
             for other_node in required_sensors:
-                print "third for loop"
                 for sensor in required_sensors[other_node]:
                     if current_node in node_datapipe_mapping and other_node in node_datapipe_mapping[current_node] and sensor["sensor"] in node_datapipe_mapping[current_node][other_node]:
                         continue
