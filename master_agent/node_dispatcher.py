@@ -7,22 +7,20 @@ class NodeDispatcher(object):
 
     def establish_datapipe(self, node_host, dst_host, port, sensor, interval):
         req_payload = json.dumps({'host' : dst_host, 'port' : port, 'sensor' : sensor, 'interval' : interval})
-        r = requests.post('http://%s:%s/datapipe' % node_host, self.agent_listen_port, data=req_payload)
+        addr = 'http://%s:%d/container' % (node_host, self.agent_listen_port)
+        r = requests.post(addr, data=req_payload)
         return r.status_code
 
     def destroy_datapipe(self, node_host, dst_host, port, sensor):
         req_payload = json.dumps({'host' : dst_host, 'port' : port, 'sensor' : sensor})
-        r = requests.delete('http://%s:%s/datapipe' % node_host, self.agent_listen_port, data=req_payload)
+        addr = 'http://%s:%d/container' % (node_host, self.agent_listen_port)
+        r = requests.delete(addr, data=req_payload)
         return r.status_code
 
     def deploy_container(self, host, image, container_ports):
-        print "in deploy container"
         req_payload = json.dumps({'image' : image, 'ports' : container_ports})
-        print "After dumps"
         addr = 'http://%s:%d/container' % (host, self.agent_listen_port)
-        print addr
         r = requests.post(addr, data=req_payload)
-        print "After post"
         if r.status_code != 200:
             return (None, None)
 
