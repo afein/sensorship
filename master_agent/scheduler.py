@@ -49,7 +49,11 @@ class Scheduler(object):
                             if p == mapping["port"]:
                                 port = port_bindings[p]
                                 sensor["device"] = mapping["sensor"]
-                                sensor["port"] = mapping["port"]
+                                node_mappings = node_oject["mappings"]
+                                for s, pin in node_object["mappings"]:
+                                    if s == sensor["device"]:
+                                        sensor["port"] = pin
+                                        break
                                 break
                 status_code = node_dispatcher.establish_datapipe(node, datapipe["remote_node"], port, sensor, datapipe["interval"])
                 if status_code != 200:
