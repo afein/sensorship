@@ -16,21 +16,22 @@ class DockerInterface(object):
         for port in ports:
             port_bindings[port] = ('0.0.0.0',)
 
-        container_id = self.client.create_container(
+        container = self.client.create_container(
             image=image,
             ports=ports,
             host_config=self.client.create_host_config(port_bindings=port_bindings)
-        )['Id']
+        )
 
-        print container_id
+        print container
+        container_id = container.get("Id")
         
-        self.client.start(container_id)
+        self.client.start(container=container_id)
 
         print "Started"
 
         bindings = {}
         print "inspecting container"
-        inspect_container = self.client.inspect_container(container_id)
+        
         for k,v in inspect_container['NetworkSettings']['Ports'].iteritems():
             cport = int(k.split('/')[0])
             bindings[cport] = int(v[0]['HostPort'])
