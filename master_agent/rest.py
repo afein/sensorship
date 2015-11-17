@@ -18,6 +18,7 @@ class RestService(object):
     def __init__(self, cluster, scheduler):
         self.cluster = cluster
         self.app = Flask("master-agent", static_folder="./ui/static", template_folder="./ui/templates")
+        self.scheduler = scheduler
 
         @self.app.route("/", methods=["GET"])
         def home():
@@ -184,6 +185,7 @@ class RestService(object):
             id = int(request.get_json(force=True)["id"])
             task = self.cluster.get_task_by_id(id)
             task["state"] = "on"
+            self.scheduler.schedule(task)
             return dumps(task)
 
         @self.app.route("/off", methods=["POST"])
