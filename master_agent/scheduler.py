@@ -22,21 +22,14 @@ class Scheduler(object):
             mappings = task['mappings']
             container_ports = [int(x["port"]) for x in mappings]
 
-            print "container ports:"
-            print container_ports
-
             node, datapipes = self.policy(task)
 
             print "node: "
             print node
             print "datapipes: "
             print datapipes
-            print task
-            print self.node_dispatcher
-            print self.node_dispatcher.deploy_container
             node_object = self.cluster_state.get_node_by_key(node)
             ip_addr = node_object["ip"]
-            print ip_addr
             container_id, port_bindings = self.node_dispatcher.deploy_container(ip_addr, task["image"], container_ports)
             if port_bindings is None:
                 return #TODO error
@@ -45,20 +38,19 @@ class Scheduler(object):
             print container_id
             print port_bindings
 
-            for port in container_ports:
-                pass
-                #TODO: call establish_datapipe with the appropriate things
-
 
             for datapipe in datapipes:
                 port = None
+                sensor = {}
                 for mapping in mappings:
-                    if datapipe['sensor'] == mapping['sensor']:
+                    if datapipe["sensor"] == mapping["sensor"]:
                         for p in port_bindings:
-                            if p == mapping['port']:
+                            if p == mapping["port"]:
                                 port = port_bindings[p]
+                                sensor["device"] = mapping["sensor"]
+                                sensor["port"] = mapping["port"]
                                 break
-                status_code = node_dispatcher.establish_datapipe(node, datapipe['remote_node'], port, datapipe['sensor'], datapipe['interval'])
+                status_code = node_dispatcher.establish_datapipe(node, datapipe["remote_node"], port, sensor, datapipe["interval"])
                 if status_code != 200:
                     raise Exception('Error when establishing datapipe')
 

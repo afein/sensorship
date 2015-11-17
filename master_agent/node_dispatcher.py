@@ -7,13 +7,13 @@ class NodeDispatcher(object):
 
     def establish_datapipe(self, node_host, dst_host, port, sensor, interval):
         req_payload = json.dumps({'host' : dst_host, 'port' : port, 'sensor' : sensor, 'interval' : interval})
-        addr = 'http://%s:%d/container' % (node_host, self.agent_listen_port)
+        addr = 'http://%s:%d/datapipe' % (node_host, self.agent_listen_port)
         r = requests.post(addr, data=req_payload)
         return r.status_code
 
     def destroy_datapipe(self, node_host, dst_host, port, sensor):
         req_payload = json.dumps({'host' : dst_host, 'port' : port, 'sensor' : sensor})
-        addr = 'http://%s:%d/container' % (node_host, self.agent_listen_port)
+        addr = 'http://%s:%d/datapipe' % (node_host, self.agent_listen_port)
         r = requests.delete(addr, data=req_payload)
         return r.status_code
 
@@ -32,5 +32,6 @@ class NodeDispatcher(object):
 
     def stop_container(self, host, ID):
         req_payload = json.dumps({'image' : image})
-        r = requests.delete('http://%s:%s/container' % host, self.agent_listen_port, data=req_payload)
+        addr = 'http://%s:%d/container' % (host, self.agent_listen_port)
+        r = requests.delete(addr, data=req_payload)
         return r.status_code
