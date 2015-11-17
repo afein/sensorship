@@ -32,6 +32,7 @@ class DockerInterface(object):
         bindings = {}
         print "inspecting container"
         
+        inspect_container = self.client.inspect_container(container_id)
         for k,v in inspect_container['NetworkSettings']['Ports'].iteritems():
             cport = int(k.split('/')[0])
             bindings[cport] = int(v[0]['HostPort'])
