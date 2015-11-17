@@ -8,7 +8,9 @@ class DockerInterface(object):
 
     def run_container(self, image, ports):
         # Pull the image if it's not present
+        print "before pull"
         self.client.pull(image)
+        print "after pull"
 
         port_bindings = {}
         for port in ports:
