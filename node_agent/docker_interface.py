@@ -7,6 +7,9 @@ class DockerInterface(object):
         self.client = Client(**kwargs_from_env(assert_hostname=False))
 
     def run_container(self, image, ports):
+        # Pull the image if it's not present
+        self.client.pull(image)
+
         port_bindings = {}
         for port in ports:
             port_bindings[port] = ('0.0.0.0',)
