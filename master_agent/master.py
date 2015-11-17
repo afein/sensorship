@@ -12,6 +12,7 @@ cluster = ClusterState()
 dispatcher = NodeDispatcher(5000)
 
 scheduler = Scheduler(cluster, dispatcher)
+
 scheduler.set_policy("greedy")
 rest = RestService(cluster, scheduler)
 rest.run()

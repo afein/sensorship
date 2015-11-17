@@ -9,68 +9,102 @@ class Scheduler(object):
     
     def set_policy(self, policy):
         with self.lock:
-            self.policy = policy
+            if policy == "greedy":
+                self.policy = self.greedy
+            else:
+                raise Exception("invalid policy")
 
     def schedule(self, task):
         with self.lock:
-            state = task['on']
-
-            if state != 'on':
+            if task['state'] != 'on':
                 raise Exception('Error schedule: task submitted in not in "On" state')
 
-            node, datapipes = self.policy(task)
-            container_id, port_bindings = node_dispatcher.deploy_container(task)
             mappings = task['mappings']
-            if port_bindings != None:
-                for datapipe in datapipes:
-                    port = None
-                    for mapping in mappings:
-                        if datapipe['sensor'] == mapping['sensor']:
-                            for p in port_bindings:
-                                if p == mapping['port']:
-                                    port = port_bindings[p]
-                        break
-                    status_code = node_dispatcher.establish_datapipe(node, datapipe['remote_node'], port, datapipe['sensor'], datapipe['interval'])
-                    if status_code != 200:
-                        raise Exception('Error when establishing datapipe')
-                cluster_state.add_deployed_containers(node)
+            container_ports = [int(x["port"]) for x in mappings]
+
+            print "container ports:"
+            print container_ports
+
+            node, datapipes = self.policy(task)
+
+            print "node: "
+            print node
+            print "datapipes: "
+            print datapipes
+            print task
+            print self.node_dispatcher
+            print self.node_dispatcher.deploy_container
+            node_object = self.cluster_state.get_node_by_key(node)
+            ip_addr = node_object["ip"]
+            print ip_addr
+            container_id, port_bindings = self.node_dispatcher.deploy_container(ip_addr, task["image"], container_ports)
+            if port_bindings is None:
+                return #TODO error
+
+            print "container_id + port_bindings: "
+            print container_id
+            print port_bindings
+
+            for port in container_ports:
+                pass
+                #TODO: call establish_datapipe with the appropriate things
+
+
+            for datapipe in datapipes:
+                port = None
+                for mapping in mappings:
+                    if datapipe['sensor'] == mapping['sensor']:
+                        for p in port_bindings:
+                            if p == mapping['port']:
+                                port = port_bindings[p]
+                                break
+                status_code = node_dispatcher.establish_datapipe(node, datapipe['remote_node'], port, datapipe['sensor'], datapipe['interval'])
+                if status_code != 200:
+                    raise Exception('Error when establishing datapipe')
+
+            cluster_state.add_deployed_containers(node)
+            # TODO: add node_datapipe_mappings
 
     def greedy(self, task):
-        image = task['image']
-        mappings = task['mappings']
-
         required_sensors = {}
-        for mapping in mappings:
+        for mapping in task['mappings']:
             node = mapping['node']
+            new_sensor = {'sensor': mapping['sensor'],
+                          'interval': mapping['interval']
+            }
             if node not in required_sensors:
-                required_sensors[node] = [{'sensor': mapping['sensor'], 'interval': mapping['interval']}]
+                required_sensors[node] = [new_sensor]
             else:
-                required_sensors[node].append({'sensor': mapping['sensor'], 'interval': mapping['interval']})
+                required_sensors[node].append(new_sensor)
+
         node_datapipe_mapping = self.cluster_state.get_node_datapipe_mapping()
         required_datapipes = {}
-        actual_datapipes = {}
+        actual_datapipes  = {}
+        print "first for loop"
+
         for current_node in required_sensors:
             count = 0
+            print "second for loop"
             for other_node in required_sensors:
-                if other_node != current_node:
-                    for sensor in required_sensors[other_node]:
-                        if current_node in node_datapipe_mapping and other_node in node_datapipe_mapping[current_node]:
-                            if sensor['sensor'] not in node_datapipe_mapping[current_node][other_node]:
-                                count += 1
-                                if current_node not in actual_datapipes:
-                                    actual_datapipes[current_node] = [{'remote_node': other_node, 'sensor': sensor['sensor'], 'interval': sensor['interval']}]
-                                else:
-                                    actual_datapipes[current_node].append({'remote_node': other_node, 'sensor': sensor['sensor'], 'interval': sensor['interval']})
-                        else:
-                            count += 1
-                            if current_node not in actual_datapipes:
-                                actual_datapipes[current_node] = [{"remote_node": other_node, 'sensor': sensor['sensor'], 'interval': sensor['interval']}]
-                            else:
-                                actual_datapipes[current_node].append({"remote_node": other_node, 'sensor': sensor['sensor'], 'interval': sensor['interval']})
+                print "third for loop"
+                for sensor in required_sensors[other_node]:
+                    if current_node in node_datapipe_mapping and other_node in node_datapipe_mapping[current_node] and sensor["sensor"] in node_datapipe_mapping[current_node][other_node]:
+                        continue
+
+                    #Establish new datapipe
+                    print "establishing new datapipe"
+                    count += 1
+                    new_datapipe = {'remote_node': other_node, 
+                                    'sensor': sensor['sensor'], 
+                                    'interval': sensor['interval']
+                    }
+                    if current_node not in actual_datapipes:
+                        actual_datapipes[current_node] = [new_datapipe]
+                    else:
+                        actual_datapipes[current_node].append(new_datapipe)
             required_datapipes[current_node] = count
         scheduled_node = min(required_datapipes, key=required_datapipes.get)
-        if actual_datapipes == {}:
-            scheduled_datapipes = {}
-        else:
-            scheduled_datapipes = actual_datapipes[scheduled_node]
+        print "scheduled node"
+        print scheduled_node
+        scheduled_datapipes = actual_datapipes[scheduled_node]
         return (scheduled_node, scheduled_datapipes)

@@ -67,6 +67,7 @@ class RestService(object):
                 return abort("The mappings field cannot be blank")
 
             tokens = task["mappings"].split(",")
+            new_mappings = []
             for token in tokens:
                 # Tokenization and parsing
                 devicesensor = token.strip().split("/")
@@ -91,7 +92,7 @@ class RestService(object):
                     return abort("Cannot use the specified port \'" + port + "\'")
                 try:
                     intval = int(interval)
-                    if intval < 20:
+                    if intval < 1:
                         raise ValueError
                 except ValueError:
                     return abort("Cannot use the specified interval \'" + interval + " ms\'")
@@ -108,7 +109,12 @@ class RestService(object):
 
                 if sensor not in sensor_types:
                     return abort("Error: The requested sensor type, \'", + sensor + "\', has not been configured for node \'" + nodename + "\'")
+                new_mappings.append({"node":nodename,
+                                     "sensor": sensor,
+                                     "port": port,
+                                     "interval":interval})
 
+            task["mappings"] = new_mappings
             self.cluster.add_task(task)
             return "OK"
 
@@ -185,7 +191,9 @@ class RestService(object):
             id = int(request.get_json(force=True)["id"])
             task = self.cluster.get_task_by_id(id)
             task["state"] = "on"
+            print "before schedule"
             self.scheduler.schedule(task)
+            print "after schedule"
             return dumps(task)
 
         @self.app.route("/off", methods=["POST"])
