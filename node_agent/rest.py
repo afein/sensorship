@@ -49,9 +49,11 @@ class RestService(object):
             port = req_json['port']
             sensor_json = req_json['sensor']
             sensor = Sensor(sensor_json['device'], sensor_json['port'])
+            print req_json
 
             if request.method == "POST":
-                interval = req_json['interval']
+                interval = float(req_json['interval'])
+                #TODO: redefine create/delete datapipe to remove redundant argument
                 self.vnm.create_datapipe(False, host, port, sensor, interval) 
             elif request.method == "DELETE":
                 self.vnm.delete_datapipe(False, host, port, sensor)
@@ -111,6 +113,11 @@ class RestService(object):
             req_json = request.get_json(force=True)
             ports = req_json['ports']
             payload = req_json['data']
+
+            print "node got data:"
+            print payload
+            print "target ports:"
+            print ports
             
             for port in ports:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

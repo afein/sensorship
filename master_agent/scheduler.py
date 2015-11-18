@@ -39,7 +39,6 @@ class Scheduler(object):
             print container_id
             print port_bindings
 
-
             for datapipe in datapipes:
                 port = None
                 sensor = {}
@@ -49,13 +48,17 @@ class Scheduler(object):
                             if p == mapping["port"]:
                                 port = port_bindings[p]
                                 sensor["device"] = mapping["sensor"]
-                                node_mappings = node_oject["mappings"]
                                 for s, pin in node_object["mappings"]:
                                     if s == sensor["device"]:
                                         sensor["port"] = pin
                                         break
                                 break
-                status_code = self.node_dispatcher.establish_datapipe(node, datapipe["remote_node"], port, sensor, datapipe["interval"])
+                print "before establish datapipe in-loop"
+                print datapipe
+
+                remote_node_object = self.cluster_state.get_node_by_key(datapipe["remote_node"])
+                remote_ip_addr = remote_node_object["ip"]
+                status_code = self.node_dispatcher.establish_datapipe(ip_addr, remote_ip_addr, port, sensor, datapipe["interval"])
                 if status_code != 200:
                     raise Exception('Error when establishing datapipe')
                 self.cluster_state.add_established_datapipes(Datapipe(datapipe["sensor"], node, datapipe["remote_node"]))

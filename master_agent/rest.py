@@ -104,8 +104,9 @@ class RestService(object):
 
                 # Sensor mapping validation
                 sensor_types = []
-                for sensor, _ in node["mappings"]:
-                    sensor_types.append(sensor)
+
+                for st, _ in node["mappings"]:
+                    sensor_types.append(st)
 
                 if sensor not in sensor_types:
                     return abort("Error: The requested sensor type, \'", + sensor + "\', has not been configured for node \'" + nodename + "\'")
@@ -115,6 +116,7 @@ class RestService(object):
                                      "interval":interval})
 
             task["mappings"] = new_mappings
+            print task
             self.cluster.add_task(task)
             return "OK"
 
@@ -148,7 +150,8 @@ class RestService(object):
                 sensor, pin = sensorpin
                 if sensor not in grove:
                     abort(400, "The requested sensor type is not supported")
-                connection = grove[sensor] # analog or digital connection type
+
+                connection = grove[sensor] 
 
                 if connection not in grovepi :
                     abort(400, "The requested pin is not available for this sensor type")
