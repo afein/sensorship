@@ -27,16 +27,14 @@ class DockerInterface(object):
         
         self.client.start(container=container_id)
 
-        print "Started"
-
         bindings = {}
-        print "inspecting container"
         
         inspect_container = self.client.inspect_container(container=container_id)
         for k,v in inspect_container['NetworkSettings']['Ports'].iteritems():
+            if v is None:
+                continue
             cport = int(k.split('/')[0])
             bindings[cport] = int(v[0]['HostPort'])
-        print "finished inspecting"
 
         return (container_id, bindings)
 
