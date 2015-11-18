@@ -14,16 +14,15 @@ class HealthCheckService(object):
         self.interval = interval
 
     def poll_health_status(self):
-        nodes = self.cluster_state.get_configured_nodes()
+        nodes = self.cluster_state.get_nodes()
         while True:
-            for node_id in nodes:
-                health_check_url = "http://" + nodes[node_id].get_ip() + "/healthz"
+            for node in nodes:
+                health_check_url = "http://%s/healthz" % nodes[node]["ip"]
                 resp = requests.get(health_check_url)
                 if resp.status_code != 200:
-                    nodes[node_id].set_healthy = False
+                    nodes[node]["state"] = "down"
                 else:
-                    nodes[node_id].set_healthy = True
-                    data = json.dumps(resp.content)
-                    nodes[node_id].set_cpu(data["cpu"])
-                    nodes[node_id].set_memory(data["memory"])
+                    nodes[node]["state"] = "up"
+                    #TODO add monitoring data to cluster_state 
+                    #data = json.loads(resp.text)
             time.sleep(float(self.get_interval() / 1000)) # time.sleep expects the duration in seconds
