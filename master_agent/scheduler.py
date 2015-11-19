@@ -42,13 +42,14 @@ class Scheduler(object):
             for datapipe in datapipes:
                 port = None
                 sensor = {}
+                remote_node_object = self.cluster_state.get_node_by_key(datapipe["remote_node"])
                 for mapping in mappings:
                     if datapipe["sensor"] == mapping["sensor"]:
                         for p in port_bindings:
                             if p == mapping["port"]:
                                 port = port_bindings[p]
                                 sensor["device"] = mapping["sensor"]
-                                for s, pin in node_object["mappings"]:
+                                for s, pin in remote_node_object["mappings"]:
                                     if s == sensor["device"]:
                                         sensor["port"] = pin
                                         break
@@ -56,7 +57,6 @@ class Scheduler(object):
                 print "before establish datapipe in-loop"
                 print datapipe
 
-                remote_node_object = self.cluster_state.get_node_by_key(datapipe["remote_node"])
                 remote_ip_addr = remote_node_object["ip"]
                 status_code = self.node_dispatcher.establish_datapipe(ip_addr, remote_ip_addr, port, sensor, datapipe["interval"])
                 if status_code != 200:
