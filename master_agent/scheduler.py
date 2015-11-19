@@ -92,7 +92,8 @@ class Scheduler(object):
 
                     #Establish new datapipe
                     print "establishing new datapipe"
-                    count += 1
+                    if current_node != other_node:
+                        count += 1
                     new_datapipe = {'remote_node': other_node, 
                                     'sensor': sensor['sensor'], 
                                     'interval': sensor['interval']
