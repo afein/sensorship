@@ -5,7 +5,7 @@ class NodeDispatcher(object):
     def __init__(self, port):
         self.agent_listen_port = port 
 
-    def establish_datapipe(self, node_host, dst_host, port, sensor, interval):
+    def establish_datapipe(self, dst_host, node_host, port, sensor, interval):
         req_payload = json.dumps({'host' : dst_host, 'port' : port, 'sensor' : sensor, 'interval' : interval})
         addr = 'http://%s:%d/datapipe' % (node_host, self.agent_listen_port)
         r = requests.post(addr, data=req_payload)
