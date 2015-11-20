@@ -184,19 +184,16 @@ class SensorDataFormatter(object):
         self.datapipes = {} # {host : Datapipe}
 
     def subscribe(self, host, port, sensor, interval):
-        try:
-            datapipe = None
-            with self.lock:
-                if host in self.datapipes.keys():
-                    datapipe = self.datapipes[host]
-                else:
-                    datapipe = Datapipe(host)
-                    self.datapipes[host] = datapipe
+        datapipe = None
+        with self.lock:
+            if host in self.datapipes.keys():
+                datapipe = self.datapipes[host]
+            else:
+                datapipe = Datapipe(host)
+                self.datapipes[host] = datapipe
 
-            endpoint = Endpoint(host, port, interval)
-            datapipe.add_sensorpipe_endpoint(sensor, endpoint)
-        except e:
-            print e
+        endpoint = Endpoint(host, port, interval)
+        datapipe.add_sensorpipe_endpoint(sensor, endpoint)
 
     def unsubscribe(self, host, port, sensor):
         datapipe = None

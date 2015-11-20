@@ -8,8 +8,8 @@ class VirtualNetworkManager(object):
         self.sdf = sdf
 
     # remote datapipe implemented as rest endpoint to arbitrate received data
-    def create_datapipe(self, remote, host, port, sensor, interval):
+    def create_datapipe(self, host, port, sensor, interval):
         Thread(target=self.sdf.subscribe, args=(host, port, sensor, interval)).start()
 
-    def delete_datapipe(self, remote, host, port, sensor):
+    def delete_datapipe(self, host, port, sensor):
         Thread(target=self.sdf.unsubscribe, args=(host, port, sensor)).start()

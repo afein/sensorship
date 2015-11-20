@@ -1,22 +1,10 @@
 from flask import Flask, Response, request 
 import json
 import socket
+import sys, traceback
 
 from sensor import *
-
-''' Master, slave interactions
-
-def master_run_container(image, sensor_ports={'s1' : 1234, 's2' : 1235}):
-    # scheduler determines node
-    # slave runs container - returns port bindings 
-    # create datapipes 
-    # return jobid
-
-def master_stop_container(jobid):
-    # check cluster state for job
-    # delete datapipes 
-    # delete container
-'''
+from util import *
 
 class RestService(object):
     
@@ -25,10 +13,24 @@ class RestService(object):
         self.docker = docker
         self.vnm = vnm
 
+
+        '''
+        GET: Get health monitoring metrics for running containers
+
+            response contains {container_id : {'cpu_percent' : value, 'mem_percent' : value}, ...}
+        '''
         @self.app.route("/healthz", methods=["GET"])
         def healthz():
-            resp = {"healthz": "get"}
-            return json.dumps(resp)
+            resp = None
+            try:
+                container_ids = self.docker.container_ids()
+                metrics_json = json.dumps(cadvisor_metrics(container_ids))
+                resp = Response(metrics_json, status=200, mimetype='application/json')
+            except:
+                traceback.print_exc(file=sys.stderr)
+                raise
+
+            return resp
 
         '''
         POST: Create a datapipe(host, port, sensor, interval)
@@ -44,29 +46,25 @@ class RestService(object):
         '''
         @self.app.route("/datapipe", methods=["POST", "DELETE"])
         def datapipe():
-            req_json = request.get_json(force=True)
-            host = req_json['host']
-            port = req_json['port']
-            sensor_json = req_json['sensor']
-            sensor = Sensor(sensor_json['device'], sensor_json['port'])
-            print req_json
+            try:
+                req_json = request.get_json(force=True)
+                host = host_cast(req_json['host'])
+                port = port_cast(req_json['port'])
+                sensor_json = req_json['sensor']
+                sensor = Sensor(sensor_json['device'], sensor_json['port'])
 
-            if request.method == "POST":
-                interval = float(req_json['interval'])
-                #TODO: redefine create/delete datapipe to remove redundant argument
-                self.vnm.create_datapipe(False, host, port, sensor, interval) 
-            elif request.method == "DELETE":
-                self.vnm.delete_datapipe(False, host, port, sensor)
+                if request.method == "POST":
+                    interval = interval_cast(req_json['interval'])
+                    self.vnm.create_datapipe(host, port, sensor, interval) 
+                elif request.method == "DELETE":
+                    self.vnm.delete_datapipe(host, port, sensor)
+
+            except:
+                traceback.print_exc(file=sys.stderr)
+                raise
 
             return 'OK'
         
-        '''
-        Do nothing, datapipe receiver implemented as /sensor_data REST endpoint
-        '''
-        @self.app.route("/remote_datapipe", methods=["POST", "DELETE"])
-        def remote_datapipe():
-            return 'OK'
-
         '''
         POST: Create and start a container(image, ports) 
             image - name of container image
@@ -79,29 +77,27 @@ class RestService(object):
         '''
         @self.app.route("/container", methods=["POST", "DELETE"])
         def container():
-            # TODO: container app needs setup time?
-            req_json = request.get_json(force=True)
+            try:
+                req_json = request.get_json(force=True)
+                resp = None
+                if request.method == "POST":
+                    image = str(req_json['image'])
+                    ports = req_json['ports'] 
+                    port_array = [port_cast(x) for x in ports]
+                    (container_id, port_bindings) = self.docker.run_container(image, port_array)
 
-            resp = None
-            if request.method == "POST":
-                image = req_json['image']
-                ports = req_json['ports'] 
-                try:
-                    (container_id, port_bindings) = self.docker.run_container(image, ports)
-                except Exception as e:
-                    print '/container POST', e
-                    raise e
-                resp_json = json.dumps({'container_id' : container_id, 'port_bindings' : port_bindings})
-                resp = Response(resp_json, status=200, mimetype='application/json') 
+                    resp_json = json.dumps({'container_id' : container_id, 'port_bindings' : port_bindings})
+                    resp = Response(resp_json, status=200, mimetype='application/json') 
 
-            elif request.method == "DELETE":
-                container_id = req_json['container_id']
-                try:
+                elif request.method == "DELETE":
+                    container_id = req_json['container_id']
                     self.docker.delete_container(container_id)
-                except Exception as e:
-                    print '/container DELETE', e
-                    raise e 
-                resp = "OK"
+
+                    resp = "OK"
+
+            except e:
+                traceback.print_exc(file=sys.stderr)
+                raise e
 
             return resp
 
@@ -114,19 +110,13 @@ class RestService(object):
             ports = req_json['ports']
             payload = req_json['data']
 
-            print "node got data:"
-            print payload
-            print "target ports:"
-            print ports
-            
             for port in ports:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 try:
                     s.connect(('', port))
                     s.send(payload)
-                except Exception as e:
-                    print '/sensor_data', e
-                    raise e
+                except:
+                    traceback.print_exc(file=sys.stderr)
                 finally:
                     s.close()
              
@@ -137,15 +127,11 @@ class RestService(object):
         '''
         @self.app.route("/sdf_state", methods=["GET"])
         def sdf_state():
-            print 'here'
-            try:
-                sdf_state = self.vnm.sdf.__repr__()
-            except Exception as e:
-                print e
-            print sdf_state
+            sdf_state = self.vnm.sdf.__repr__()
             resp = Response(sdf_state, status=200, mimetype='text/plain')
 
             return resp
+
             
     def run(self):
         self.app.run(host='0.0.0.0', port=5000)

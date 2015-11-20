@@ -7,10 +7,10 @@ from time import gmtime, strftime
 class Sensor(object):
 
     def __init__(self, device, port):
-        assert device in grove.keys()
+        assert device in grove.keys(), device
         sensor_type = grove[device]
-        assert sensor_type in grovepi.keys()
-        assert port in grovepi[sensor_type].keys()
+        assert sensor_type in grovepi.keys(), sensor_type
+        assert port in grovepi[sensor_type].keys(), port
         self.device = device
         self.port = port
         self.pin = grovepi[sensor_type][port]

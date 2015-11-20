@@ -7,10 +7,8 @@ class DockerInterface(object):
         self.client = Client(**kwargs_from_env(assert_hostname=False))
 
     def run_container(self, image, ports):
-        # TODO: Pull the image if it's not present
-        print "before pull"
         self.client.pull(image)
-        print "after pull"
+        print 'pulled image', image
 
         port_bindings = {}
         for port in ports:
@@ -23,22 +21,33 @@ class DockerInterface(object):
         )
 
         container_id = container.get("Id")
-        
-        self.client.start(container=container_id)
+        print 'created container', container_id
 
+        self.client.start(container=container_id)
+        print 'started container', container_id
 
         bindings = {}
-        
         inspect_container = self.client.inspect_container(container=container_id)
         for k,v in inspect_container['NetworkSettings']['Ports'].iteritems():
-            cport = int(k.split('/')[0])
             if v is None:
                 continue
+            cport = int(k.split('/')[0])
             bindings[cport] = int(v[0]['HostPort'])
 
         return (container_id, bindings)
 
     def delete_container(self, container):
         self.client.stop(container, timeout=0) 
+        print 'stopped container', container
+
         self.client.remove_container(container)
+        print 'removed container', container
+
+    def container_ids(self):
+        container_ids = []
+        containers = self.client.containers()
+        for c in containers:
+            container_ids.append(c['Id'])
+
+        return container_ids
 
