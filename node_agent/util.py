@@ -50,3 +50,16 @@ def cadvisor_metrics(container_ids):
 
     return metrics
 
+def node_info():
+    info = {}
+
+    r = requests.get('http://localhost:8080/api/v2.0/attributes')
+    assert r.status_code == 200, r.status_code
+
+    attributes = json.loads(r.text)
+    info['kernel_version'] = attributes['kernel_version']
+    info['num_cores'] = attributes['num_cores']
+    info['cpu_frequency_khz'] = attributes['cpu_frequency_khz']
+    info['memory_capacity'] = attributes['memory_capacity']
+
+    return info

@@ -33,6 +33,24 @@ class RestService(object):
             return resp
 
         '''
+        GET: Get info regarding node attributes
+
+            response containers {"kernel_version" : value, "num_cores" : value, "memory_capacity" : value, "cpu_frequency_khz" : value}
+        '''
+        @self.app.route("/info", methods=["GET"])
+        def info():
+            resp = None
+            try:
+                info_json = json.dumps(node_info())
+                resp = Response(info_json, status=200, mimetype='application/json')
+            except:
+                traceback.print_exc(file=sys.stderr)
+                raise
+
+            return resp
+
+
+        '''
         POST: Create a datapipe(host, port, sensor, interval)
             host - IP of destination node
             port - host port binded to container

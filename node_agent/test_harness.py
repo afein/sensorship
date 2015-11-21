@@ -35,6 +35,12 @@ def healthz(node_host):
 
     return json.loads(r.text)
 
+def info(node_host):
+    r = requests.get('http://%s:5000/info' % node_host)
+    assert r.status_code == 200, r.status_code
+
+    return json.loads(r.text)
+
 def sdf_state(node_host):
     r = requests.get('http://%s:5000/sdf_state' % node_host)
     assert r.status_code == 200, r.status_code
