@@ -31,7 +31,7 @@ class NodeDispatcher(object):
 
 
     def stop_container(self, host, ID):
-        req_payload = json.dumps({'image' : image})
+        req_payload = json.dumps({'container_id' : ID})
         addr = 'http://%s:%d/container' % (host, self.agent_listen_port)
         r = requests.delete(addr, data=req_payload)
         return r.status_code
