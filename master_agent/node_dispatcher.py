@@ -11,7 +11,7 @@ class NodeDispatcher(object):
         r = requests.post(addr, data=req_payload)
         return r.status_code
 
-    def destroy_datapipe(self, node_host, dst_host, port, sensor):
+    def destroy_datapipe(self, dst_host, node_host, port, sensor):
         req_payload = json.dumps({'host' : dst_host, 'port' : port, 'sensor' : sensor})
         addr = 'http://%s:%d/datapipe' % (node_host, self.agent_listen_port)
         r = requests.delete(addr, data=req_payload)
