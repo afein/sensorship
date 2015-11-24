@@ -17,9 +17,6 @@ class Scheduler(object):
 
     def schedule(self, task):
         with self.lock:
-            if task['state'] != 'on':
-                raise Exception('Error schedule: task submitted in not in "On" state')
-
             mappings = task['mappings']
             container_ports = [int(x["port"]) for x in mappings]
 
@@ -39,6 +36,7 @@ class Scheduler(object):
             print container_id
             print port_bindings
 
+            datapipe_ids = []
             for datapipe in datapipes:
                 port = None
                 sensor = {}
@@ -61,10 +59,16 @@ class Scheduler(object):
                 status_code = self.node_dispatcher.establish_datapipe(ip_addr, remote_ip_addr, port, sensor, datapipe["interval"])
                 if status_code != 200:
                     raise Exception('Error when establishing datapipe')
-                self.cluster_state.add_established_datapipes(Datapipe(datapipe["sensor"], node, datapipe["remote_node"]))
+                datapipe_ids.append(self.cluster_state.add_established_datapipes(Datapipe(sensor, node, datapipe["remote_node"], port)))
 
             self.cluster_state.add_deployed_containers(node, container_id)
+
             print "deployed_containers: "
+            task["scheduled"] = {
+                "node_name" : node,
+                "container_id" : container_id,
+                "datapipes" : datapipe_ids
+            }
             print self.cluster_state.get_deployed_containers()
 
     def greedy(self, task):

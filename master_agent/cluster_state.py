@@ -40,7 +40,9 @@ class ClusterState(object):
 
     def add_node(self, name, node):
         with self.lock:
+            print self.nodes
             self.nodes[name] = node
+            print self.nodes
 
     def get_tasks(self):
         with self.lock:
@@ -99,6 +101,7 @@ class ClusterState(object):
             else:
                 self.node_datapipe_mapping[local_node] = {}
                 self.node_datapipe_mapping[local_node][remote_node] = [sensor]
+            return self.established_datapipes_counter - 1
 
     def get_node_datapipe_mapping(self):
         with self.lock:

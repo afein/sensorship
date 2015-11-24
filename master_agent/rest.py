@@ -10,6 +10,9 @@ from threading import Lock
 from dev.grovepi import grovepi
 from sensors.grove import grove
 
+import traceback
+import sys
+
 def abort(message):
     resp = BadRequest()
     resp.description=message
@@ -17,10 +20,11 @@ def abort(message):
 
 class RestService(object):
     def __init__(self, cluster, scheduler, dispatcher):
-        self.cluster = cluster
-        self.app = Flask("master-agent", static_folder="./ui/static", template_folder="./ui/templates")
         self.scheduler = scheduler
+	self.cluster = cluster
+        self.dispatcher = dispatcher
         self.lock = Lock()
+        self.app = Flask("master-agent", static_folder="./ui/static", template_folder="./ui/templates")
 
         @self.app.route("/", methods=["GET"])
         def home():
@@ -125,50 +129,56 @@ class RestService(object):
 
         @self.app.route("/register", methods=["POST"])
         def register_node():
-            with self.lock:
-                new_node = request.get_json(force=True)
+            print "before lock"
+	    try: 
+		with self.lock:
+		    print "after lock"
+		    new_node = request.get_json(force=True)
 
-                if "name" not in new_node:
-                    abort(400, "The \'name\' field cannot be empty")
+		    if "name" not in new_node:
+			abort(400, "The \'name\' field cannot be empty")
 
-                if "ip" not in new_node:
-                    abort(400, "The \'IP\' field cannot be empty")
+		    if "ip" not in new_node:
+			abort(400, "The \'IP\' field cannot be empty")
 
-                # Check if the IP is syntactically correct
-                try:
-                    socket.inet_aton(new_node["ip"])
-                except socket.error:
-                    abort(400, "Invalid IP address")
+		    # Check if the IP is syntactically correct
+		    try:
+			socket.inet_aton(new_node["ip"])
+		    except socket.error:
+			abort(400, "Invalid IP address")
 
-                if "mappings" not in new_node:
-                    abort(400, "The \'mappings\' field cannot be empty")
+		    if "mappings" not in new_node:
+			abort(400, "The \'mappings\' field cannot be empty")
 
-                tokens = new_node["mappings"].split(",")
-                new_mappings = []
-                for token in tokens:
-                    # Tokenization and parsing
-                    sensorpin = token.strip().split(":")
-                    if len(sensorpin) != 2:
-                        abort(400, "Syntax Error while parsing mappings")
+		    tokens = new_node["mappings"].split(",")
+		    new_mappings = []
+		    for token in tokens:
+			# Tokenization and parsing
+			sensorpin = token.strip().split(":")
+			if len(sensorpin) != 2:
+			    abort(400, "Syntax Error while parsing mappings")
 
-                    sensor, pin = sensorpin
-                    if sensor not in grove:
-                        abort(400, "The requested sensor type is not supported")
+			sensor, pin = sensorpin
+			if sensor not in grove:
+			    abort(400, "The requested sensor type is not supported")
 
-                    connection = grove[sensor] 
+			connection = grove[sensor] 
 
-                    if connection not in grovepi :
-                        abort(400, "The requested pin is not available for this sensor type")
+			if connection not in grovepi :
+			    abort(400, "The requested pin is not available for this sensor type")
 
-                    if pin not in grovepi[connection]:
-                        abort(400, "The requested pin is not available for this sensor type")
-                    new_mappings.append((sensor, pin))
-                    
-            if "state" not in new_node:
-                new_node["state"] = "down"
-            new_node["mappings"] = new_mappings
-            self.cluster.add_node(new_node["name"], new_node)
-            return "OK"
+			if pin not in grovepi[connection]:
+			    abort(400, "The requested pin is not available for this sensor type")
+			new_mappings.append((sensor, pin))
+			
+		    if "state" not in new_node:
+			new_node["state"] = "down"
+
+		    new_node["mappings"] = new_mappings
+		    self.cluster.add_node(new_node["name"], new_node)
+		    return "OK"
+	    except:
+		traceback.print_exc(file=sys.stderr)
 
         @self.app.route("/tasks", methods=["GET"])
         def get_tasks():
@@ -198,10 +208,14 @@ class RestService(object):
             with self.lock:
                 id = int(request.get_json(force=True)["id"])
                 task = self.cluster.get_task_by_id(id)
-                task["state"] = "on"
+
+                if task["state"] != "off":
+                    return abort("The task is not in an 'off' state")
+
                 print "before schedule"
                 self.scheduler.schedule(task)
                 print "after schedule"
+                task["state"] = "on"
                 return dumps(task)
 
         @self.app.route("/off", methods=["POST"])
@@ -209,8 +223,24 @@ class RestService(object):
             with self.lock:
                 id = int(request.get_json(force=True)["id"])
                 task = self.cluster.get_task_by_id(id)
+
+                if task["state"] != "on":
+                    return abort("The task is not in an 'on' state")
+
+                print task
+
+                for datapipe_id in task["scheduled"]["datapipes"]:
+                    datapipe = cluster.get_established_datapipe_by_id(datapipe_id)
+                    remote_node_ip = cluster.get_node_by_key(datapipe.remote_node)["ip"]
+                    local_node_ip = cluster.get_node_by_key(datapipe.local_node)["ip"]
+                    self.dispatcher.destroy_datapipe(local_node_ip, remote_node_ip, datapipe.remote_port, datapipe.sensor)
+
+                node_ip = cluster.get_node_by_key(task["scheduled"]["node_name"])["ip"]
+                container_id = task["scheduled"]["container_id"]
+                self.dispatcher.stop_container(node_ip, container_id)
+
                 task["state"] = "off"
-                return dumps(task)
+                return "OK"
 
     def run(self):
         self.app.run()
