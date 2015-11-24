@@ -1,4 +1,3 @@
 flask
 docker-py
-grovepi
 requests

@@ -1,7 +1,7 @@
 From    hypriot/rpi-python 
 COPY    . /src
 
-RUN apt-get update && apt-get install python-pygame
+RUN apt-get update && apt-get install -y python-pygame
 
 EXPOSE  1234 
 EXPOSE  1235
