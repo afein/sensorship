@@ -29,7 +29,6 @@ class NodeDispatcher(object):
         port_bindings = resp_payload['port_bindings']
         return (container_id, port_bindings)
 
-
     def stop_container(self, host, ID):
         req_payload = json.dumps({'container_id' : ID})
         addr = 'http://%s:%d/container' % (host, self.agent_listen_port)

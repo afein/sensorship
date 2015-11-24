@@ -5,6 +5,7 @@ from werkzeug.exceptions import BadRequest
 from flask.json import jsonify
 from json import dumps
 from requests import get
+from threading import Lock
 
 from dev.grovepi import grovepi
 from sensors.grove import grove
@@ -15,10 +16,11 @@ def abort(message):
     return resp
 
 class RestService(object):
-    def __init__(self, cluster, scheduler):
+    def __init__(self, cluster, scheduler, dispatcher):
         self.cluster = cluster
         self.app = Flask("master-agent", static_folder="./ui/static", template_folder="./ui/templates")
         self.scheduler = scheduler
+        self.lock = Lock()
 
         @self.app.route("/", methods=["GET"])
         def home():
@@ -39,127 +41,129 @@ class RestService(object):
                 validates that the task is runnable in the current cluster
                 and stores the task in cluster_state.
             '''
-            task = request.get_json(force=True)
-            if "state" not in task or ("state" != "off" and "state" != "on"):
-                task["state"] = "off"
+            with self.lock:
+                task = request.get_json(force=True)
+                if "state" not in task or ("state" != "off" and "state" != "on"):
+                    task["state"] = "off"
 
-            if "image" not in task or task["image"] == "":
-                return abort("The image field cannot be blank")
+                if "image" not in task or task["image"] == "":
+                    return abort("The image field cannot be blank")
 
-            reponame = task["image"].split("/")
-            if len(reponame) != 2:
-                return abort("Malformed Docker image name or tag")
+                reponame = task["image"].split("/")
+                if len(reponame) != 2:
+                    return abort("Malformed Docker image name or tag")
 
-            repo, name = reponame
-            if ":" not in name:
-                tag = "latest"
-            else:
-                nametag =  name.split(":")
-                if len(nametag) != 2:
-                    return abort("Malformed Docker tag")
-                name, tag = nametag
+                repo, name = reponame
+                if ":" not in name:
+                    tag = "latest"
+                else:
+                    nametag =  name.split(":")
+                    if len(nametag) != 2:
+                        return abort("Malformed Docker tag")
+                    name, tag = nametag
 
-            resp = get("https://registry.hub.docker.com/v1/repositories/" + repo + "/" + name + "/tags/" + tag)
-            if resp.status_code != 200:
-                return abort("Image \'" + task["image"] + "\' does not exist in Docker Hub")
+                resp = get("https://registry.hub.docker.com/v1/repositories/" + repo + "/" + name + "/tags/" + tag)
+                if resp.status_code != 200:
+                    return abort("Image \'" + task["image"] + "\' does not exist in Docker Hub")
 
-            if "mappings" not in task or task["mappings"] == "":
-                return abort("The mappings field cannot be blank")
+                if "mappings" not in task or task["mappings"] == "":
+                    return abort("The mappings field cannot be blank")
 
-            tokens = task["mappings"].split(",")
-            new_mappings = []
-            for token in tokens:
-                # Tokenization and parsing
-                devicesensor = token.strip().split("/")
-                if len(devicesensor) != 2:
-                    return abort("Syntax Error while parsing mappings")
-                nodename, sensor = devicesensor
-                sensorport = sensor.split(":")
-                if len(sensorport) != 2:
-                    return abort("Syntax Error while parsing mappings")
-                sensor, port = sensorport
-                portinterval = port.split(" ") 
-                if len(portinterval) != 2:
-                    return abort("Syntax Error while parsing mappings")
-                port, interval = portinterval
+                tokens = task["mappings"].split(",")
+                new_mappings = []
+                for token in tokens:
+                    # Tokenization and parsing
+                    devicesensor = token.strip().split("/")
+                    if len(devicesensor) != 2:
+                        return abort("Syntax Error while parsing mappings")
+                    nodename, sensor = devicesensor
+                    sensorport = sensor.split(":")
+                    if len(sensorport) != 2:
+                        return abort("Syntax Error while parsing mappings")
+                    sensor, port = sensorport
+                    portinterval = port.split(" ") 
+                    if len(portinterval) != 2:
+                        return abort("Syntax Error while parsing mappings")
+                    port, interval = portinterval
 
-                # Semantic Validation for Device, Sensor, Port and Interval
-                try: 
-                    intport = int(port)
-                    if intport < 0 or intport > 65535:
-                        raise ValueError
-                except ValueError:
-                    return abort("Cannot use the specified port \'" + port + "\'")
-                try:
-                    intval = int(interval)
-                    if intval < 1:
-                        raise ValueError
-                except ValueError:
-                    return abort("Cannot use the specified interval \'" + interval + " ms\'")
+                    # Semantic Validation for Device, Sensor, Port and Interval
+                    try: 
+                        intport = int(port)
+                        if intport < 0 or intport > 65535:
+                            raise ValueError
+                    except ValueError:
+                        return abort("Cannot use the specified port \'" + port + "\'")
+                    try:
+                        intval = int(interval)
+                        if intval < 1:
+                            raise ValueError
+                    except ValueError:
+                        return abort("Cannot use the specified interval \'" + interval + " ms\'")
 
-                # Node Lookup
-                node = self.cluster.get_node_by_key(nodename) 
-                if node is None:
-                    return abort("Error: No such Node: " + nodename)
+                    # Node Lookup
+                    node = self.cluster.get_node_by_key(nodename) 
+                    if node is None:
+                        return abort("Error: No such Node: " + nodename)
 
-                # Sensor mapping validation
-                sensor_types = []
+                    # Sensor mapping validation
+                    sensor_types = []
 
-                for st, _ in node["mappings"]:
-                    sensor_types.append(st)
+                    for st, _ in node["mappings"]:
+                        sensor_types.append(st)
 
-                if sensor not in sensor_types:
-                    return abort("Error: The requested sensor type, \'", + sensor + "\', has not been configured for node \'" + nodename + "\'")
-                new_mappings.append({"node":nodename,
-                                     "sensor": sensor,
-                                     "port": port,
-                                     "interval":interval})
+                    if sensor not in sensor_types:
+                        return abort("Error: The requested sensor type, \'", + sensor + "\', has not been configured for node \'" + nodename + "\'")
+                    new_mappings.append({"node":nodename,
+                                         "sensor": sensor,
+                                         "port": port,
+                                         "interval":interval})
 
-            task["mappings"] = new_mappings
-            print task
-            self.cluster.add_task(task)
-            return "OK"
+                task["mappings"] = new_mappings
+                print task
+                self.cluster.add_task(task)
+                return "OK"
 
         @self.app.route("/register", methods=["POST"])
         def register_node():
-            new_node = request.get_json(force=True)
+            with self.lock:
+                new_node = request.get_json(force=True)
 
-            if "name" not in new_node:
-                abort(400, "The \'name\' field cannot be empty")
+                if "name" not in new_node:
+                    abort(400, "The \'name\' field cannot be empty")
 
-            if "ip" not in new_node:
-                abort(400, "The \'IP\' field cannot be empty")
+                if "ip" not in new_node:
+                    abort(400, "The \'IP\' field cannot be empty")
 
-            # Check if the IP is syntactically correct
-            try:
-                socket.inet_aton(new_node["ip"])
-            except socket.error:
-                abort(400, "Invalid IP address")
+                # Check if the IP is syntactically correct
+                try:
+                    socket.inet_aton(new_node["ip"])
+                except socket.error:
+                    abort(400, "Invalid IP address")
 
-            if "mappings" not in new_node:
-                abort(400, "The \'mappings\' field cannot be empty")
+                if "mappings" not in new_node:
+                    abort(400, "The \'mappings\' field cannot be empty")
 
-            tokens = new_node["mappings"].split(",")
-            new_mappings = []
-            for token in tokens:
-                # Tokenization and parsing
-                sensorpin = token.strip().split(":")
-                if len(sensorpin) != 2:
-                    abort(400, "Syntax Error while parsing mappings")
+                tokens = new_node["mappings"].split(",")
+                new_mappings = []
+                for token in tokens:
+                    # Tokenization and parsing
+                    sensorpin = token.strip().split(":")
+                    if len(sensorpin) != 2:
+                        abort(400, "Syntax Error while parsing mappings")
 
-                sensor, pin = sensorpin
-                if sensor not in grove:
-                    abort(400, "The requested sensor type is not supported")
+                    sensor, pin = sensorpin
+                    if sensor not in grove:
+                        abort(400, "The requested sensor type is not supported")
 
-                connection = grove[sensor] 
+                    connection = grove[sensor] 
 
-                if connection not in grovepi :
-                    abort(400, "The requested pin is not available for this sensor type")
+                    if connection not in grovepi :
+                        abort(400, "The requested pin is not available for this sensor type")
 
-                if pin not in grovepi[connection]:
-                    abort(400, "The requested pin is not available for this sensor type")
-                new_mappings.append((sensor, pin))
-                
+                    if pin not in grovepi[connection]:
+                        abort(400, "The requested pin is not available for this sensor type")
+                    new_mappings.append((sensor, pin))
+                    
             if "state" not in new_node:
                 new_node["state"] = "down"
             new_node["mappings"] = new_mappings
@@ -191,20 +195,22 @@ class RestService(object):
 
         @self.app.route("/on", methods=["POST"])
         def start_task():
-            id = int(request.get_json(force=True)["id"])
-            task = self.cluster.get_task_by_id(id)
-            task["state"] = "on"
-            print "before schedule"
-            self.scheduler.schedule(task)
-            print "after schedule"
-            return dumps(task)
+            with self.lock:
+                id = int(request.get_json(force=True)["id"])
+                task = self.cluster.get_task_by_id(id)
+                task["state"] = "on"
+                print "before schedule"
+                self.scheduler.schedule(task)
+                print "after schedule"
+                return dumps(task)
 
         @self.app.route("/off", methods=["POST"])
         def stop_task():
-            id = int(request.get_json(force=True)["id"])
-            task = self.cluster.get_task_by_id(id)
-            task["state"] = "off"
-            return dumps(task)
+            with self.lock:
+                id = int(request.get_json(force=True)["id"])
+                task = self.cluster.get_task_by_id(id)
+                task["state"] = "off"
+                return dumps(task)
 
     def run(self):
         self.app.run()
