@@ -1,4 +1,5 @@
 from threading import Lock
+
 class ClusterState(object):
     ''' Cluster State Singleton '''
     _instance = None
@@ -40,9 +41,7 @@ class ClusterState(object):
 
     def add_node(self, name, node):
         with self.lock:
-            print self.nodes
             self.nodes[name] = node
-            print self.nodes
 
     def get_tasks(self):
         with self.lock:
@@ -68,12 +67,18 @@ class ClusterState(object):
             except KeyError:
                 return None
 
-    def add_deployed_containers(self, node_id, container_id):
+    def add_deployed_container(self, node_id, container_id):
         with self.lock:
-            if node_id not in self.deployed_containers: 
-                self.deployed_containers[node_id] = [container_id]
-            else:
-                self.deployed_containers[node_id].append(container_id)
+            if node_id not in self.deployed_containers:
+                self.deployed_containers[node_id] = {}
+            self.deployed_containers[node_id][container_id] = {}
+
+    def remove_deployed_container(self, node_id, container_id):
+        with self.lock:
+            if node_id not in self.deployed_containers or container_id not in self.deployed_containers[node_id]:
+                raise("Internal Error: Tried to remove a non-existing container_id")
+        
+            del self.deployed_containers[node_id][container_id]
 
     def get_established_datapipes(self):
         with self.lock:
@@ -86,7 +91,7 @@ class ClusterState(object):
             except KeyError:
                 return None
 
-    def add_established_datapipes(self, datapipe):
+    def add_established_datapipe(self, datapipe):
         with self.lock:
             self.established_datapipes[self.established_datapipes_counter] = datapipe
             self.established_datapipes_counter += 1
@@ -102,6 +107,15 @@ class ClusterState(object):
                 self.node_datapipe_mapping[local_node] = {}
                 self.node_datapipe_mapping[local_node][remote_node] = [sensor]
             return self.established_datapipes_counter - 1
+
+    def remove_established_datapipe(self, datapipe):
+        with self.lock:
+            sensors = self.node_datapipe_mapping[datapipe.local_node][datapipe.remote_node]
+            sensor = datapipe.sensor
+            if sensor not in sensors:
+                raise("Internal Error: Tried to remove a non existing-datapipe")
+            
+            sensors.remove(datapipe.sensor)
 
     def get_node_datapipe_mapping(self):
         with self.lock:

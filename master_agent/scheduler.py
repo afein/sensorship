@@ -59,9 +59,9 @@ class Scheduler(object):
                 status_code = self.node_dispatcher.establish_datapipe(ip_addr, remote_ip_addr, port, sensor, datapipe["interval"])
                 if status_code != 200:
                     raise Exception('Error when establishing datapipe')
-                datapipe_ids.append(self.cluster_state.add_established_datapipes(Datapipe(sensor, node, datapipe["remote_node"], port)))
+                datapipe_ids.append(self.cluster_state.add_established_datapipe(Datapipe(sensor, node, datapipe["remote_node"], port)))
 
-            self.cluster_state.add_deployed_containers(node, container_id)
+            self.cluster_state.add_deployed_container(node, container_id)
 
             print "deployed_containers: "
             task["scheduled"] = {

@@ -234,10 +234,13 @@ class RestService(object):
                     remote_node_ip = cluster.get_node_by_key(datapipe.remote_node)["ip"]
                     local_node_ip = cluster.get_node_by_key(datapipe.local_node)["ip"]
                     self.dispatcher.destroy_datapipe(local_node_ip, remote_node_ip, datapipe.remote_port, datapipe.sensor)
+                    self.cluster.remove_established_datapipe(datapipe)
 
-                node_ip = cluster.get_node_by_key(task["scheduled"]["node_name"])["ip"]
+                node = cluster.get_node_by_key(task["scheduled"]["node_name"])
+                node_ip = node["ip"]
                 container_id = task["scheduled"]["container_id"]
                 self.dispatcher.stop_container(node_ip, container_id)
+                self.cluster.remove_deployed_container(node, container_id)
 
                 task["state"] = "off"
                 return "OK"
