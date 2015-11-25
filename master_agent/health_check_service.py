@@ -24,7 +24,8 @@ class HealthCheckService(object):
     def poll_health_status(self):
         nodes = self.cluster_state.get_nodes()
         for node in nodes:
-            health_check_url = "http://%s/healthz" % nodes[node]["ip"]
+            node_ip = nodes[node]["ip"]
+            health_check_url = "http://%s/healthz" % node_ip
             resp = requests.get(health_check_url)
             if resp.status_code != 200:
                 nodes[node]["state"] = "down"
@@ -41,7 +42,7 @@ class HealthCheckService(object):
                         containers[container_id]["state"] = "down"
 
                 if node not in info_for_node and not info_for_node[node]:
-                    info_check_url = "http://%s/info" % nodes[node]["ip"]
+                    info_check_url = "http://%s/info" % node_ip
                     resp = requests.get(info_check_url)
                     if resp.status_code != 200:
                         self.info_for_node[node] = False
