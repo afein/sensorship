@@ -17,7 +17,7 @@ class HealthCheckService(object):
         self.timer.cancel()
         self.set_timer()
 
-    def set_timer(self, timer):
+    def set_timer(self):
         self.timer = Timer(self.interval, self.poll_health_status, [])
         self.timer.start()
 
