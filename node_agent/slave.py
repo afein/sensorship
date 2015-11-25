@@ -7,6 +7,7 @@ from docker_interface import DockerInterface
 from rest import RestService
 
 os.system("service docker restart")
+os.system("docker rm cadvisor")
 os.system("./cadvisor.sh")
 
 docker = DockerInterface()
