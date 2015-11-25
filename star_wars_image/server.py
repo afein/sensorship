@@ -8,7 +8,7 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
     def __init__(self, *args, **kwargs):
         self.started = False
         self.playing = False
-        super(ThreadedTCPRequestHandler).__init__(*args, *kwargs)
+        super(ThreadedTCPRequestHandler).__init__(*args, **kwargs)
 
     def handle(self):
         self.data = self.request.recv(1024).strip()
