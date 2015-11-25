@@ -6,6 +6,9 @@ from vnm import VirtualNetworkManager
 from docker_interface import DockerInterface
 from rest import RestService
 
+os.system("service docker restart")
+os.system("./cadvisor.sh")
+
 docker = DockerInterface()
 sdf = SensorDataFormatter()
 vnm = VirtualNetworkManager(sdf)
