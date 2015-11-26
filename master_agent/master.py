@@ -15,5 +15,5 @@ scheduler = Scheduler(cluster, dispatcher)
 
 scheduler.set_policy("greedy")
 rest = RestService(cluster, scheduler, dispatcher)
-health_check_service = HealthCheckService(5, cluster)
+health_check_service = HealthCheckService(3, cluster)
 rest.run()

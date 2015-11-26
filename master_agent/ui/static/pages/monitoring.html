@@ -7,6 +7,41 @@
 					<h4> Node Information: {{ node.name }}</h4>
 				</div>
 				<br>
+				<table class="table"> 
+					<tr>
+						<td>State</td> 
+						<td>{{ node.state }}</td>
+					</tr>
+					<tr>
+						<td>Kernel Version</td>
+						<td>{{ node.info.kernel_version }}</td>
+					</tr>
+					<tr>
+					</tr>
+
+					<tr>
+						<td>Memory Capacity</td>
+						<td>{{ node.info.memory_capacity / 1048576 }} MB</td>
+					</tr>
+
+					<tr>
+						<td>Cores</td>
+						<td>{{ node.info.num_cores }}</td>
+					</tr>
+
+					<tr>
+						<td>CPU Frequency</td>
+						<td>{{ node.info.cpu_frequency_khz }} kHz</td>
+					</tr>
+				</table>
+				<br>
+				<h4>Running Containers</h4>
+				<div ng-repeat="container in containers">
+					{{container.id}}
+					{{container}}
+					<table class="table"> 
+					</table>
+				</div>
 			</div>
 		</div>
 	</div>

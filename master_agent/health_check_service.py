@@ -11,54 +11,52 @@ class HealthCheckService(object):
         self.set_timer()
 
     def set_timer(self):
-        print "timer is set"
         self.timer = Thread(target=self.poll_health_status)
         self.timer.daemon = True
-        print "starting thread"
         self.timer.start()
-        print "thread started"
 
     def poll_health_status(self):
         while True:
-            print "polling"
             nodes = self.cluster_state.get_nodes()
             for node in nodes:
                 node_ip = nodes[node]["ip"]
                 health_check_url = "http://%s:5000/healthz" % node_ip
                 resp = requests.get(health_check_url, timeout=6)
-                print "healthz"
-                print resp
                 if resp.status_code != 200:
                     nodes[node]["state"] = "down"
                 else:
                     nodes[node]["state"] = "up"
+		    nodes[node]["containers"] = []
                     data = json.loads(resp.text)
                     containers = self.cluster_state.get_deployed_containers_by_node_id(node)
-                    for container_id in data:
-                        if container_id in containers:
-                            containers[container_id]["state"] = "up"
-                            containers[container_id]["cpu_percent"] = data[container_id]["cpu_percent"]
-                            containers[container_id]["mem_percent"] = data[container_id]["mem_percent"]
-                        else:
-                            containers[container_id]["state"] = "down"
+		    if containers is not None:
+			for container_id in data:
+			    if container_id in containers:
+				containers[container_id]["state"] = "up"
+				containers[container_id]["cpu_percent"] = data[container_id]["cpu_percent"]
+				containers[container_id]["mem_percent"] = data[container_id]["mem_percent"]
+			    else:
+				containers[container_id]["state"] = "down"
+			    for container_id in containers:
+				nodes[node]["containers"].append({
+				    "id" : container_id,
+				    "state" : containers[container_id]["state"],
+				    "cpu_percent" : containers[container_id]["cpu_percent"],
+				    "mem_percent" : containers[container_id]["mem_percent"]
+				})
 
-                        if node not in self.info_for_node and not self.info_for_node[node]:
-                            info_check_url = "http://%s:5000/info" % node_ip
-                            resp = requests.get(info_check_url, timeout=6)
-                            print "info"
-                            print resp
-                            if resp.status_code != 200:
+                    if node not in self.info_for_node:
+                        info_check_url = "http://%s:5000/info" % node_ip
+                        resp = requests.get(info_check_url, timeout=6)
+                        if resp.status_code == 200:
+                            data = json.loads(resp.text)
+                            try:
+                                nodes[node]["info"] = {}
+                                nodes[node]["info"]["kernel_version"] = data["kernel_version"]
+                                nodes[node]["info"]["num_cores"] = data["num_cores"]
+                                nodes[node]["info"]["memory_capacity"] = data["memory_capacity"]
+                                nodes[node]["info"]["cpu_frequency_khz"] = data["cpu_frequency_khz"]
+                                self.info_for_node[node] = True
+                            except KeyError:
                                 self.info_for_node[node] = False
-                            else:
-                                data = json.loads(resp.text)
-                                try:
-                                    nodes[node]["kernel_version"] = data["kernel_version"]
-                                    nodes[node]["num_cores"] = data["num_cores"]
-                                    nodes[node]["memory_capacity"] = data["memory_capacity"]
-                                    nodes[node]["cpu_frequency_khz"] = data["cpu_frequency_khz"]
-                                    self.info_for_node[node] = True
-                                except KeyError:
-                                    self.info_for_node[node] = False
-            print "sleeping"
             sleep(self.interval)
-            print "slept"
