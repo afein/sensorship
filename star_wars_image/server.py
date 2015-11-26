@@ -6,6 +6,9 @@ import pygame
 
 started = False
 playing = False
+pygame.init()
+pygame.mixer.load("/src/starwars.wav")
+
 class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
     def handle(self):
         global started
@@ -19,13 +22,14 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
             if '"value": 1' in self.data and not playing:
                 print "button pressed"
                 if not started:
+                    pygame.mixer.play()
                     print "started music"
-                    pygame.mixer.music.play("/src/starwars.wav")
                     started = True
                 else:
                     print "unpaused music"
                     pygame.mixer.music.unpause()
                 playing = True
+                time.sleep(5)
             elif '"value": 0' in self.data and playing:
                 print "paused music"
                 pygame.mixer.music.pause()
