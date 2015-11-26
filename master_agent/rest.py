@@ -230,9 +230,9 @@ class RestService(object):
                 print task
 
                 for datapipe_id in task["scheduled"]["datapipes"]:
-                    datapipe = cluster.get_established_datapipe_by_id(datapipe_id)
-                    remote_node_ip = cluster.get_node_by_key(datapipe.remote_node)["ip"]
-                    local_node_ip = cluster.get_node_by_key(datapipe.local_node)["ip"]
+                    datapipe = self.cluster.get_established_datapipe_by_id(datapipe_id)
+                    remote_node_ip = self.cluster.get_node_by_key(datapipe.remote_node)["ip"]
+                    local_node_ip = self.cluster.get_node_by_key(datapipe.local_node)["ip"]
                     self.dispatcher.destroy_datapipe(local_node_ip, remote_node_ip, datapipe.remote_port, datapipe.sensor)
                     self.cluster.remove_established_datapipe(datapipe)
 
