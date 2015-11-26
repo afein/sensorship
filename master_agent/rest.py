@@ -236,7 +236,7 @@ class RestService(object):
                     self.dispatcher.destroy_datapipe(local_node_ip, remote_node_ip, datapipe.remote_port, datapipe.sensor)
                     self.cluster.remove_established_datapipe(datapipe)
 
-                node = cluster.get_node_by_key(task["scheduled"]["node_name"])
+                node = self.cluster.get_node_by_key(task["scheduled"]["node_name"])
                 node_ip = node["ip"]
                 container_id = task["scheduled"]["container_id"]
                 self.dispatcher.stop_container(node_ip, container_id)
