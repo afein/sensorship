@@ -1,5 +1,4 @@
 From    hypriot/rpi-python 
-COPY    . /src
 
 RUN apt-get update && apt-get install -y python-pygame
 
