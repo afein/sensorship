@@ -36,6 +36,7 @@ class HealthCheckService(object):
 				containers[container_id]["cpu_percent"] = data[container_id]["cpu_percent"]
 				containers[container_id]["mem_percent"] = data[container_id]["mem_percent"]
 			    else:
+                                containers[container_id] = {}
 				containers[container_id]["state"] = "down"
 			    for container_id in containers:
 				nodes[node]["containers"].append({
