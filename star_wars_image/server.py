@@ -17,13 +17,17 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
         if "GroveButton" in self.data:
             print "GroveButton found"
             if '"value": 1' in self.data and not playing:
+                print "button pressed"
                 if not started:
+                    print "started music"
                     pygame.mixer.music.play("/src/starwars.wav")
                     started = True
                 else:
+                    print "unpaused music"
                     pygame.mixer.music.unpause()
                 playing = True
             elif '"value": 0' in self.data and playing:
+                print "paused music"
                 pygame.mixer.music.pause()
                 playing = False
 
