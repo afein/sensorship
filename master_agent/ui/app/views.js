@@ -79,7 +79,7 @@ angular.module('sensorship').controller('homeCtrl', function($scope, $http) {
 });
 
 
-angular.module('sensorship').controller('allNodesCtrl', function($scope, $http) {
+angular.module('sensorship').controller('allNodesCtrl', function($scope, $http, $interval) {
 	$scope.registerNode = function() {
 		var name = $('#nodename').val();
 		var ip = $('#nodeip').val();
@@ -109,23 +109,46 @@ angular.module('sensorship').controller('allNodesCtrl', function($scope, $http) 
 				$scope.items = data;
 			}
 		});
-		$.getJSON("/sensors", function(data) {
+	}
+
+	$.getJSON("/sensors", function(data) {
+		$scope.sensors = data;
+	});
+
+	$scope.sync(false);
+
+	$scope.refresh = $interval(function() {
+		$scope.sync(true);
+	}, 6000);
+
+	$scope.$on('$destroy', function () {
+		$interval.cancel($scope.refresh);
+	});
+});
+
+
+angular.module('sensorship').controller('monitoringCtrl', function($scope, $interval) {
+	$scope.sync = function(apply) {
+		$.getJSON("/nodes", function(data) {
 			if (apply) {
 				$scope.$apply(function() {
-					$scope.sensors = data;
+					$scope.items = data;
 				});
 			} else {
-				$scope.sensors = data;
+				$scope.items = data;
 			}
+			console.log($scope.items);
 		});
 	}
 
 	$scope.sync(false);
-});
 
+	$scope.refresh = $interval(function() {
+		$scope.sync(true);
+	}, 6000);
 
-angular.module('sensorship').controller('nodeCtrl', function($scope) {
-});
+	$scope.$on('$destroy', function () {
+		$interval.cancel($scope.refresh);
+	});
 
-angular.module('sensorship').controller('containerCtrl', function($scope) {
 });

@@ -27,16 +27,10 @@ angular.module('sensorship').config(['$locationProvider', '$routeProvider', '$pr
         controller : 'allNodesCtrl',
       })
 
-      // route for each individual Node page
-      .when('/node/:name', {
-        templateUrl : 'static/pages/node.html',
-        controller : 'nodeCtrl',
-      })
-
 	  // route for the apps page
-      .when('/containers/', {
-        templateUrl : 'static/pages/containers.html',
-        controller : 'containerCtrl',
+      .when('/monitoring/', {
+        templateUrl : 'static/pages/monitoring.html',
+        controller : 'monitoringCtrl',
       })
 
       .otherwise({
