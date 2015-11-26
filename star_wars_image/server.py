@@ -4,29 +4,28 @@ import SocketServer
 import json
 import pygame
 
+started = False
+playing = False
 class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
-    def __init__(self, *args, **kwargs):
-        self.started = False
-        self.playing = False
-        super(ThreadedTCPRequestHandler).__init__(*args, **kwargs)
-
     def handle(self):
+        global started
+        global playing
         self.data = self.request.recv(1024).strip()
         print "%s wrote: " % self.client_address[0]
         print self.data
         reading = json.loads(self.data)
 
         if "sensor" in reading and "value" in reading:
-            if reading["sensor"] == "GroveButton" and reading["value"] == 1 and not self.playing:
-                if not self.started:
+            if reading["sensor"] == "GroveButton" and reading["value"] == 1 and not playing:
+                if not started:
                     pygame.mixer.music.play("/src/starwars.wav")
-                    self.started = True
+                    started = True
                 else:
                     pygame.mixer.music.unpause()
-                self.playing = True
-            elif reading["sensor"] == "GroveButton" and reading["value"] == 0 and self.playing:
+                playing = True
+            elif reading["sensor"] == "GroveButton" and reading["value"] == 0 and playing:
                 pygame.mixer.music.pause()
-                self.playing = False
+                playing = False
 
         self.request.send(self.data.upper())
 
