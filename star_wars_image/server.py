@@ -23,7 +23,7 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
             if '"value": 1' in self.data and not playing:
                 print "button pressed"
                 if not started:
-                    pygame.mixer.play()
+                    pygame.mixer.music.play()
                     print "started music"
                     started = True
                 else:
