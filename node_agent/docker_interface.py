@@ -23,7 +23,7 @@ class DockerInterface(object):
         container_id = container.get("Id")
         print 'created container', container_id
 
-        self.client.start(container=container_id)
+        self.client.start(container=container_id, privileged=True)
         print 'started container', container_id
 
         bindings = {}
