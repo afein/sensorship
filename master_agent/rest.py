@@ -227,8 +227,6 @@ class RestService(object):
                 if task["state"] != "on":
                     return abort("The task is not in an 'on' state")
 
-                print task
-
                 for datapipe_id in task["scheduled"]["datapipes"]:
                     datapipe = self.cluster.get_established_datapipe_by_id(datapipe_id)
                     remote_node_ip = self.cluster.get_node_by_key(datapipe.remote_node)["ip"]
@@ -240,7 +238,7 @@ class RestService(object):
                 node_ip = node["ip"]
                 container_id = task["scheduled"]["container_id"]
                 self.dispatcher.stop_container(node_ip, container_id)
-                self.cluster.remove_deployed_container(node, container_id)
+                self.cluster.remove_deployed_container(node["name"], container_id)
 
                 task["state"] = "off"
                 return "OK"

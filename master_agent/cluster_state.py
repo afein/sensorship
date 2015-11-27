@@ -75,10 +75,10 @@ class ClusterState(object):
 
     def remove_deployed_container(self, node_id, container_id):
         with self.lock:
-            if node_id not in self.deployed_containers or container_id not in self.deployed_containers[node_id]:
-                raise("Internal Error: Tried to remove a non-existing container_id")
-        
-            del self.deployed_containers[node_id][container_id]
+            try:
+                del self.deployed_containers[node_id][container_id]
+            except KeyError:
+                raise("Internal Error: Tried to remove a container_id that does not exist")
 
     def get_established_datapipes(self):
         with self.lock:
