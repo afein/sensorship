@@ -17,13 +17,14 @@ class DockerInterface(object):
         container = self.client.create_container(
             image=image,
             ports=ports,
-            host_config=self.client.create_host_config(port_bindings=port_bindings)
+            host_config=self.client.create_host_config(port_bindings=port_bindings,
+            devices=['/dev/snd:/dev/snd'])
         )
 
         container_id = container.get("Id")
         print 'created container', container_id
 
-        self.client.start(container=container_id, privileged=True)
+        self.client.start(container=container_id)
         print 'started container', container_id
 
         bindings = {}
