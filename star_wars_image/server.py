@@ -8,7 +8,7 @@ started = False
 playing = False
 pygame.init()
 pygame.mixer.init()
-pygame.mixer.music.load("/src/starwars.wav")
+pygame.mixer.music.load("/src/star-wars-theme-song.mp3")
 
 class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
     def handle(self):
