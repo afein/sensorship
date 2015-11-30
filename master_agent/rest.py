@@ -98,11 +98,11 @@ class RestService(object):
                     except ValueError:
                         return abort("Cannot use the specified port \'" + port + "\'")
                     try:
-                        intval = int(interval)
+                        intval = float(interval)
                         if intval < 1:
                             raise ValueError
                     except ValueError:
-                        return abort("Cannot use the specified interval \'" + interval + " ms\'")
+                        return abort("Cannot use the specified interval \'" + interval + " s\'")
 
                     # Node Lookup
                     node = self.cluster.get_node_by_key(nodename) 
