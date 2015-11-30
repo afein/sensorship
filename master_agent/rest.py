@@ -99,7 +99,7 @@ class RestService(object):
                         return abort("Cannot use the specified port \'" + port + "\'")
                     try:
                         intval = float(interval)
-                        if intval < 1:
+                        if intval < 0.1:
                             raise ValueError
                     except ValueError:
                         return abort("Cannot use the specified interval \'" + interval + " s\'")
