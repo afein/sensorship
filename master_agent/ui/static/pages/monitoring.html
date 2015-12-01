@@ -7,16 +7,21 @@
 					<h4> Node Information: {{ node.name }}</h4>
 				</div>
 				<br>
+				<h5><a href="{{node.ip}}:8080"> CAdvisor Link</a></h5>
 				<table class="table"> 
 					<tr>
 						<td>State</td> 
 						<td>{{ node.state }}</td>
 					</tr>
+
+					<tr>
+						<td>IP Address</td>
+						<td>{{ node.ip }}</td>
+					</tr>
+
 					<tr>
 						<td>Kernel Version</td>
 						<td>{{ node.info.kernel_version }}</td>
-					</tr>
-					<tr>
 					</tr>
 
 					<tr>
@@ -37,10 +42,29 @@
 				<br>
 				<h4>Running Containers</h4>
 				<div ng-repeat="container in containers">
-					{{container.id}}
-					{{container}}
 					<table class="table"> 
+						<tr>
+							<td>Container ID</td>
+							<td>{{ container.id }}</td>
+						</tr>
+
+						<tr>
+							<td>State</td> 
+							<td>{{ container.state }}</td>
+						</tr>
+
+
+						<tr>
+							<td>CPU %</td>
+							<td>{{ container.cpu_percent }}</td>
+						</tr>
+
+						<tr>
+							<td>Memory %</td>
+							<td>{{ container.mem_percent }}</td>
+						</tr>
 					</table>
+					<br>
 				</div>
 			</div>
 		</div>

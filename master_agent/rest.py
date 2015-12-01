@@ -25,6 +25,7 @@ class RestService(object):
         self.dispatcher = dispatcher
         self.lock = Lock()
         self.app = Flask("master-agent", static_folder="./ui/static", template_folder="./ui/templates")
+        self.app.debug = False
 
         @self.app.route("/", methods=["GET"])
         def home():
@@ -244,4 +245,4 @@ class RestService(object):
                 return "OK"
 
     def run(self):
-        self.app.run()
+        self.app.run(host="0.0.0.0")
