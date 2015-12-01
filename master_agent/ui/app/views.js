@@ -141,11 +141,11 @@ angular.module('sensorship').controller('monitoringCtrl', function($scope, $inte
 		});
 	}
 
-	$scope.sync(false);
+	$scope.sync(true);
 
 	$scope.refresh = $interval(function() {
 		$scope.sync(true);
-	}, 6000);
+	}, 3000);
 
 	$scope.$on('$destroy', function () {
 		$interval.cancel($scope.refresh);
